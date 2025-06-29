@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Draft and Season Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            overflow-x: hidden;
+        }
+        .nba-gradient {
+            background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%);
+        }
+        .nba-gradient-text {
+            background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nba-red {
+            color: #dc2626;
+        }
+        .nba-blue {
+            color: #1d4ed8;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                container: {
+                    center: true,
+                    padding: "2rem",
+                    screens: {
+                        "2xl": "1400px",
+                    },
+                },
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        input: "hsl(var(--input))",
+                        ring: "hsl(var(--ring))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(var(--secondary))",
+                            foreground: "hsl(var(--secondary-foreground))",
+                        },
+                        destructive: {
+                            DEFAULT: "hsl(var(--destructive))",
+                            foreground: "hsl(var(--destructive-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(var(--accent))",
+                            foreground: "hsl(var(--accent-foreground))",
+                        },
+                        popover: {
+                            DEFAULT: "hsl(var(--popover))",
+                            foreground: "hsl(var(--popover-foreground))",
+                        },
+                        card: {
+                            DEFAULT: "hsl(var(--card))",
+                            foreground: "hsl(var(--card-foreground))",
+                        },
+                    },
+                    borderRadius: {
+                        lg: "var(--radius)",
+                        md: "calc(var(--radius) - 2px)",
+                        sm: "calc(var(--radius) - 4px)",
+                    },
+                    keyframes: {
+                        "accordion-down": {
+                            from: { height: 0 },
+                            to: { height: "var(--radix-accordion-content-height)" },
+                        },
+                        "accordion-up": {
+                            from: { height: "var(--radix-accordion-content-height)" },
+                            to: { height: 0 },
+                        },
+                        fall: {
+                            '0%': { transform: 'translateY(0) rotate(0deg)', opacity: '1' },
+                            '100%': { transform: 'translateY(100vh) rotate(720deg)', opacity: '0' },
+                        }
+                    },
+                    animation: {
+                        "accordion-down": "accordion-down 0.2s ease-out",
+                        "accordion-up": "accordion-up 0.2s ease-out",
+                        fall: 'fall 5s linear forwards',
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 220 13% 18%;
+            --card: 0 0% 100%;
+            --card-foreground: 220 13% 18%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 220 13% 18%;
+            --primary: 220 100% 50%;
+            --primary-foreground: 0 0% 100%;
+            --secondary: 220 13% 96%;
+            --secondary-foreground: 220 13% 18%;
+            --muted: 220 13% 96%;
+            --muted-foreground: 220 13% 35%;
+            --accent: 220 13% 96%;
+            --accent-foreground: 220 13% 18%;
+            --destructive: 0 84% 60%;
+            --destructive-foreground: 0 0% 100%;
+            --border: 220 13% 91%;
+            --input: 220 13% 91%;
+            --ring: 220 100% 50%;
+            --radius: 0.5rem;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            overflow-x: hidden;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 20px;
+            opacity: 1;
+            transform: rotate(0deg);
+            animation: fall 5s linear forwards;
+            border-radius: 2px;
+        }
+        .player-card-button:disabled {
+            background-color: hsl(var(--muted)) !important;
+            color: hsl(var(--muted-foreground)) !important;
+            cursor: not-allowed !important;
+            pointer-events: none;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease-in-out;
+        }
+        .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            background-color: hsl(var(--card));
+            color: hsl(var(--card-foreground));
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+        }
+        .modal-content h3 {
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: hsl(var(--destructive));
+        }
+        .modal-content p {
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            color: hsl(var(--muted-foreground));
+        }
+        .modal-content button {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .modal-content button:hover {
+            background-color: hsl(var(--primary) / 0.9);
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground">
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title"></h3>
+            <p id="modal-message"></p>
+            <button id="modal-close-btn">OK</button>
+        </div>
+    </div>
+
+    <div id="start-screen" class="flex flex-col justify-center items-center h-screen bg-background">
+        <h1 class="text-4xl font-bold mb-8 nba-gradient-text">NBA Draft & Season Simulator</h1>
+        <button id="start-btn" class="nba-gradient hover:opacity-90 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300 shadow-lg hover:shadow-xl">Start Game</button>
+    </div>
+
+    <div id="team-selection-screen" class="hidden flex flex-col justify-center items-center min-h-screen bg-background p-4">
+        <h2 class="text-3xl font-bold mb-8 text-center nba-gradient-text">Choose Your Team</h2>
+        <div id="team-logos-container" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4 sm:gap-6 max-w-6xl w-full"></div>
+    </div>
+
+    <div id="game-container" class="hidden">
+        <div id="confetti-container" class="absolute top-0 left-0 w-full h-full pointer-events-none z-50 overflow-hidden"></div>
+        <div class="container mx-auto p-4 my-8">
+            <h1 id="draft-header" class="text-4xl font-bold text-center mb-8 nba-gradient-text">Draft Point Guard</h1>
+            <div id="draft-section" class="grid grid-cols-1 md:grid-cols-5 gap-8">
+                <div class="md:col-span-3">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-2xl font-semibold text-gray-900">Player Pool</h2>
+                        <div class="text-sm text-gray-600"><span id="player-count">0</span> <span id="position-label">Point Guards</span> Available</div>
+                    </div>
+                    <div id="player-pool" class="bg-card border rounded-lg p-4 h-96 overflow-y-auto shadow-sm"></div>
+                </div>
+                <div class="md:col-span-2">
+                     <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-2xl font-semibold text-gray-900">Your Team</h2>
+                        <div class="text-sm text-gray-600"><span id="team-count">0</span>/5</div>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-lg font-semibold text-gray-900">Team: <span id="your-team-name" class="font-bold text-primary"></span></p>
+                        <p class="text-lg font-semibold text-gray-900">Cap Space Remaining: $<span id="cap-space">145</span>M</p>
+                    </div>
+                    <div id="your-team" class="bg-card border rounded-lg p-4 min-h-[24rem] shadow-sm"></div>
+                </div>
+            </div>
+            <div id="bot-drafted-section" class="mt-8">
+                <h2 id="bot-drafted-header" class="text-2xl font-semibold mb-4 text-gray-900">Other Teams' Drafted Players</h2>
+                <div id="bot-drafted-players" class="bg-card border rounded-lg p-4 h-48 overflow-y-auto shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+            <div id="controls" class="text-center mt-8 space-x-4">
+                <button id="sim-season-btn" class="nba-gradient hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg text-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg">Simulate Season</button>
+                <button id="sim-playoffs-btn" class="nba-gradient hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg text-lg transition duration-300 disabled:bg-muted disabled:text-muted-foreground shadow-md hover:shadow-lg" style="display: none;">Simulate Playoffs</button>
+                <button id="reset-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-lg transition duration-300 shadow-md hover:shadow-lg" style="display: none;">Draft Again</button>
+            </div>
+            <div id="results-section" class="text-center mt-8">
+                <h2 class="text-2xl font-semibold mb-4 nba-gradient-text">Results</h2>
+                <div id="results-display" class="bg-card border rounded-lg p-4 min-h-[100px] text-lg shadow-sm">
+                    Draft your 5-player team to begin!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const PLAYOFF_WIN_THRESHOLD = 40;
+            const TEAM_SIZE = 5;
+            const NUM_BOT_TEAMS = 10;
+            const STARTING_CAP_SPACE = 145;
+            const DRAFT_ORDER = [
+                { position: "PG", label: "Point Guards" },
+                { position: "SG", label: "Shooting Guards" },
+                { position: "SF", label: "Small Forwards" },
+                { position: "PF", label: "Power Forwards" },
+                { position: "C", label: "Centers" }
+            ];
+
+            // Chemistry system - players who work well together
+            const playerChemistry = {
+                // Golden State Warriors
+                "Stephen Curry": ["Draymond Green", "Klay Thompson", "Andrew Wiggins"],
+                "Draymond Green": ["Stephen Curry", "Klay Thompson", "Andrew Wiggins"],
+                "Klay Thompson": ["Stephen Curry", "Draymond Green", "Andrew Wiggins"],
+                "Andrew Wiggins": ["Stephen Curry", "Draymond Green", "Klay Thompson"],
+                
+                // Indiana Pacers
+                "Tyrese Haliburton": ["Myles Turner", "Pascal Siakam", "Bennedict Mathurin"],
+                "Myles Turner": ["Tyrese Haliburton", "Pascal Siakam"],
+                "Pascal Siakam": ["Tyrese Haliburton", "Myles Turner"],
+                
+                // Denver Nuggets
+                "Nikola Jokic": ["Jamal Murray", "Aaron Gordon", "Michael Porter Jr."],
+                "Jamal Murray": ["Nikola Jokic", "Aaron Gordon", "Michael Porter Jr."],
+                "Aaron Gordon": ["Nikola Jokic", "Jamal Murray", "Michael Porter Jr."],
+                "Michael Porter Jr.": ["Nikola Jokic", "Jamal Murray", "Aaron Gordon"],
+                
+                // Boston Celtics
+                "Jayson Tatum": ["Jaylen Brown", "Derrick White", "Kristaps Porziņģis"],
+                "Jaylen Brown": ["Jayson Tatum", "Derrick White", "Kristaps Porziņģis"],
+                "Derrick White": ["Jayson Tatum", "Jaylen Brown", "Kristaps Porziņģis"],
+                "Kristaps Porziņģis": ["Jayson Tatum", "Jaylen Brown", "Derrick White"],
+                
+                // Milwaukee Bucks
+                "Giannis Antetokounmpo": ["Damian Lillard", "Brook Lopez", "Khris Middleton"],
+                "Damian Lillard": ["Giannis Antetokounmpo", "Brook Lopez", "Khris Middleton"],
+                "Brook Lopez": ["Giannis Antetokounmpo", "Damian Lillard", "Khris Middleton"],
+                "Khris Middleton": ["Giannis Antetokounmpo", "Damian Lillard", "Brook Lopez"],
+                
+                // Phoenix Suns
+                "Devin Booker": ["Kevin Durant", "Bradley Beal", "Jusuf Nurkić"],
+                "Kevin Durant": ["Devin Booker", "Bradley Beal", "Jusuf Nurkić"],
+                "Bradley Beal": ["Devin Booker", "Kevin Durant", "Jusuf Nurkić"],
+                "Jusuf Nurkić": ["Devin Booker", "Kevin Durant", "Bradley Beal"],
+                
+                // Dallas Mavericks
+                "Luka Dončić": ["Kyrie Irving", "P.J. Washington", "Daniel Gafford"],
+                "Kyrie Irving": ["Luka Dončić", "P.J. Washington", "Daniel Gafford"],
+                "P.J. Washington": ["Luka Dončić", "Kyrie Irving", "Daniel Gafford"],
+                "Daniel Gafford": ["Luka Dončić", "Kyrie Irving", "P.J. Washington"],
+                
+                // Los Angeles Lakers
+                "LeBron James": ["Anthony Davis", "Austin Reaves", "D'Angelo Russell"],
+                "Anthony Davis": ["LeBron James", "Austin Reaves", "D'Angelo Russell"],
+                "Austin Reaves": ["LeBron James", "Anthony Davis", "D'Angelo Russell"],
+                "D'Angelo Russell": ["LeBron James", "Anthony Davis", "Austin Reaves"],
+                
+                // Miami Heat
+                "Jimmy Butler": ["Bam Adebayo", "Tyler Herro", "Terry Rozier"],
+                "Bam Adebayo": ["Jimmy Butler", "Tyler Herro", "Terry Rozier"],
+                "Tyler Herro": ["Jimmy Butler", "Bam Adebayo", "Terry Rozier"],
+                "Terry Rozier": ["Jimmy Butler", "Bam Adebayo", "Tyler Herro"],
+                
+                // Oklahoma City Thunder
+                "Shai Gilgeous-Alexander": ["Chet Holmgren", "Jalen Williams", "Josh Giddey"],
+                "Chet Holmgren": ["Shai Gilgeous-Alexander", "Jalen Williams", "Josh Giddey"],
+                "Jalen Williams": ["Shai Gilgeous-Alexander", "Chet Holmgren", "Josh Giddey"],
+                "Josh Giddey": ["Shai Gilgeous-Alexander", "Chet Holmgren", "Jalen Williams"],
+                
+                // Minnesota Timberwolves
+                "Anthony Edwards": ["Karl-Anthony Towns", "Rudy Gobert", "Mike Conley"],
+                "Karl-Anthony Towns": ["Anthony Edwards", "Rudy Gobert", "Mike Conley"],
+                "Rudy Gobert": ["Anthony Edwards", "Karl-Anthony Towns", "Mike Conley"],
+                "Mike Conley": ["Anthony Edwards", "Karl-Anthony Towns", "Rudy Gobert"],
+                
+                // Sacramento Kings
+                "De'Aaron Fox": ["Domantas Sabonis", "Keegan Murray", "Malik Monk"],
+                "Domantas Sabonis": ["De'Aaron Fox", "Keegan Murray", "Malik Monk"],
+                "Keegan Murray": ["De'Aaron Fox", "Domantas Sabonis", "Malik Monk"],
+                "Malik Monk": ["De'Aaron Fox", "Domantas Sabonis", "Keegan Murray"],
+                
+                // New York Knicks
+                "Jalen Brunson": ["Julius Randle", "OG Anunoby", "Donte DiVincenzo"],
+                "Julius Randle": ["Jalen Brunson", "OG Anunoby", "Donte DiVincenzo"],
+                "OG Anunoby": ["Jalen Brunson", "Julius Randle", "Donte DiVincenzo"],
+                "Donte DiVincenzo": ["Jalen Brunson", "Julius Randle", "OG Anunoby"],
+                
+                // Cleveland Cavaliers
+                "Donovan Mitchell": ["Darius Garland", "Evan Mobley", "Jarrett Allen"],
+                "Darius Garland": ["Donovan Mitchell", "Evan Mobley", "Jarrett Allen"],
+                "Evan Mobley": ["Donovan Mitchell", "Darius Garland", "Jarrett Allen"],
+                "Jarrett Allen": ["Donovan Mitchell", "Darius Garland", "Evan Mobley"],
+                
+                // Orlando Magic
+                "Paolo Banchero": ["Franz Wagner", "Jalen Suggs", "Wendell Carter Jr."],
+                "Franz Wagner": ["Paolo Banchero", "Jalen Suggs", "Wendell Carter Jr."],
+                "Jalen Suggs": ["Paolo Banchero", "Franz Wagner", "Wendell Carter Jr."],
+                "Wendell Carter Jr.": ["Paolo Banchero", "Franz Wagner", "Jalen Suggs"],
+                
+                // Houston Rockets
+                "Alperen Şengün": ["Jalen Green", "Fred VanVleet", "Dillon Brooks"],
+                "Jalen Green": ["Alperen Şengün", "Fred VanVleet", "Dillon Brooks"],
+                "Fred VanVleet": ["Alperen Şengün", "Jalen Green", "Dillon Brooks"],
+                "Dillon Brooks": ["Alperen Şengün", "Jalen Green", "Fred VanVleet"],
+                
+                // Memphis Grizzlies
+                "Ja Morant": ["Jaren Jackson Jr.", "Desmond Bane", "Marcus Smart"],
+                "Jaren Jackson Jr.": ["Ja Morant", "Desmond Bane", "Marcus Smart"],
+                "Desmond Bane": ["Ja Morant", "Jaren Jackson Jr.", "Marcus Smart"],
+                "Marcus Smart": ["Ja Morant", "Jaren Jackson Jr.", "Desmond Bane"],
+                
+                // Atlanta Hawks
+                "Trae Young": ["Dejounte Murray", "De'Andre Hunter", "Clint Capela"],
+                "Dejounte Murray": ["Trae Young", "De'Andre Hunter", "Clint Capela"],
+                "De'Andre Hunter": ["Trae Young", "Dejounte Murray", "Clint Capela"],
+                "Clint Capela": ["Trae Young", "Dejounte Murray", "De'Andre Hunter"],
+                
+                // Chicago Bulls
+                "Zach LaVine": ["DeMar DeRozan", "Nikola Vučević", "Coby White"],
+                "DeMar DeRozan": ["Zach LaVine", "Nikola Vučević", "Coby White"],
+                "Nikola Vučević": ["Zach LaVine", "DeMar DeRozan", "Coby White"],
+                "Coby White": ["Zach LaVine", "DeMar DeRozan", "Nikola Vučević"],
+                
+                // Los Angeles Clippers
+                "Kawhi Leonard": ["Paul George", "James Harden", "Russell Westbrook"],
+                "Paul George": ["Kawhi Leonard", "James Harden", "Russell Westbrook"],
+                "James Harden": ["Kawhi Leonard", "Paul George", "Russell Westbrook"],
+                "Russell Westbrook": ["Kawhi Leonard", "Paul George", "James Harden"],
+                
+                // Philadelphia 76ers
+                "Joel Embiid": ["Tyrese Maxey", "Tobias Harris", "Kelly Oubre Jr."],
+                "Tyrese Maxey": ["Joel Embiid", "Tobias Harris", "Kelly Oubre Jr."],
+                "Tobias Harris": ["Joel Embiid", "Tyrese Maxey", "Kelly Oubre Jr."],
+                "Kelly Oubre Jr.": ["Joel Embiid", "Tyrese Maxey", "Tobias Harris"],
+                
+                // Portland Trail Blazers
+                "Anfernee Simons": ["Scoot Henderson", "Jerami Grant", "Deandre Ayton"],
+                "Scoot Henderson": ["Anfernee Simons", "Jerami Grant", "Deandre Ayton"],
+                "Jerami Grant": ["Anfernee Simons", "Scoot Henderson", "Deandre Ayton"],
+                "Deandre Ayton": ["Anfernee Simons", "Scoot Henderson", "Jerami Grant"],
+                
+                // San Antonio Spurs
+                "Victor Wembanyama": ["Devin Vassell", "Keldon Johnson", "Jeremy Sochan"],
+                "Devin Vassell": ["Victor Wembanyama", "Keldon Johnson", "Jeremy Sochan"],
+                "Keldon Johnson": ["Victor Wembanyama", "Devin Vassell", "Jeremy Sochan"],
+                "Jeremy Sochan": ["Victor Wembanyama", "Devin Vassell", "Keldon Johnson"],
+                
+                // Toronto Raptors
+                "Scottie Barnes": ["RJ Barrett", "Immanuel Quickley", "Bruce Brown"],
+                "RJ Barrett": ["Scottie Barnes", "Immanuel Quickley", "Bruce Brown"],
+                "Immanuel Quickley": ["Scottie Barnes", "RJ Barrett", "Bruce Brown"],
+                "Bruce Brown": ["Scottie Barnes", "RJ Barrett", "Immanuel Quickley"],
+                
+                // Utah Jazz
+                "Lauri Markkanen": ["Collin Sexton", "Jordan Clarkson", "John Collins"],
+                "Collin Sexton": ["Lauri Markkanen", "Jordan Clarkson", "John Collins"],
+                "Jordan Clarkson": ["Lauri Markkanen", "Collin Sexton", "John Collins"],
+                "John Collins": ["Lauri Markkanen", "Collin Sexton", "Jordan Clarkson"],
+                
+                // Washington Wizards
+                "Kyle Kuzma": ["Jordan Poole", "Deni Avdija", "Tyus Jones"],
+                "Jordan Poole": ["Kyle Kuzma", "Deni Avdija", "Tyus Jones"],
+                "Deni Avdija": ["Kyle Kuzma", "Jordan Poole", "Tyus Jones"],
+                "Tyus Jones": ["Kyle Kuzma", "Jordan Poole", "Deni Avdija"],
+                
+                // Charlotte Hornets
+                "LaMelo Ball": ["Brandon Miller", "Miles Bridges", "Mark Williams"],
+                "Brandon Miller": ["LaMelo Ball", "Miles Bridges", "Mark Williams"],
+                "Miles Bridges": ["LaMelo Ball", "Brandon Miller", "Mark Williams"],
+                "Mark Williams": ["LaMelo Ball", "Brandon Miller", "Miles Bridges"],
+                
+                // Detroit Pistons
+                "Cade Cunningham": ["Jaden Ivey", "Ausar Thompson", "Jalen Duren"],
+                "Jaden Ivey": ["Cade Cunningham", "Ausar Thompson", "Jalen Duren"],
+                "Ausar Thompson": ["Cade Cunningham", "Jaden Ivey", "Jalen Duren"],
+                "Jalen Duren": ["Cade Cunningham", "Jaden Ivey", "Ausar Thompson"],
+                
+                // Brooklyn Nets
+                "Mikal Bridges": ["Cameron Johnson", "Ben Simmons", "Dennis Smith Jr."],
+                "Cameron Johnson": ["Mikal Bridges", "Ben Simmons", "Dennis Smith Jr."],
+                "Ben Simmons": ["Mikal Bridges", "Cameron Johnson", "Dennis Smith Jr."],
+                "Dennis Smith Jr.": ["Mikal Bridges", "Cameron Johnson", "Ben Simmons"],
+                
+                // New Orleans Pelicans
+                "Brandon Ingram": ["Zion Williamson", "CJ McCollum", "Herb Jones"],
+                "Zion Williamson": ["Brandon Ingram", "CJ McCollum", "Herb Jones"],
+                "CJ McCollum": ["Brandon Ingram", "Zion Williamson", "Herb Jones"],
+                "Herb Jones": ["Brandon Ingram", "Zion Williamson", "CJ McCollum"]
+            };
+
+            let players = [
+                { name: "Nikola Jokic", rating: 98, position: "C" },
+                { name: "Luka Dončić", rating: 97, position: "PG" },
+                { name: "Giannis Antetokounmpo", rating: 96, position: "PF" },
+                { name: "Shai Gilgeous-Alexander", rating: 95, position: "SG" },
+                { name: "Joel Embiid", rating: 95, position: "C" },
+                { name: "Stephen Curry", rating: 94, position: "PG" },
+                { name: "Kevin Durant", rating: 94, position: "SF" },
+                { name: "Jayson Tatum", rating: 93, position: "SF" },
+                { name: "LeBron James", rating: 93, position: "SF" },
+                { name: "Anthony Davis", rating: 92, position: "PF/C" },
+                { name: "Devin Booker", rating: 92, position: "SG" },
+                { name: "Victor Wembanyama", rating: 91, position: "C" },
+                { name: "Anthony Edwards", rating: 91, position: "SG" },
+                { name: "Damian Lillard", rating: 90, position: "PG" },
+                { name: "Donovan Mitchell", rating: 90, position: "SG" },
+                { name: "Tyrese Haliburton", rating: 89, position: "PG" },
+                { name: "Zion Williamson", rating: 89, position: "PF" },
+                { name: "Jamal Murray", rating: 88, position: "SG" },
+                { name: "De'Aaron Fox", rating: 88, position: "PG" },
+                { name: "Kyrie Irving", rating: 88, position: "PG" },
+                { name: "Jimmy Butler", rating: 88, position: "SF" },
+                { name: "Tyrese Maxey", rating: 87, position: "PG" },
+                { name: "Paul George", rating: 87, position: "SF" },
+                { name: "Kawhi Leonard", rating: 87, position: "SF" },
+                { name: "LaMelo Ball", rating: 87, position: "PG" },
+                { name: "Trae Young", rating: 86, position: "PG" },
+                { name: "Bam Adebayo", rating: 86, position: "C" },
+                { name: "Jaylen Brown", rating: 86, position: "SG/SF" },
+                { name: "Jalen Brunson", rating: 85, position: "PG" },
+                { name: "Domantas Sabonis", rating: 85, position: "PF/C" },
+                { name: "Pascal Siakam", rating: 85, position: "PF" },
+                { name: "Karl-Anthony Towns", rating: 85, position: "C" },
+                { name: "Dejounte Murray", rating: 84, position: "SG" },
+                { name: "Lauri Markkanen", rating: 84, position: "PF" },
+                { name: "Chet Holmgren", rating: 84, position: "C" },
+                { name: "Paolo Banchero", rating: 84, position: "PF" },
+                { name: "Julius Randle", rating: 83, position: "PF" },
+                { name: "Scottie Barnes", rating: 83, position: "SF" },
+                { name: "Franz Wagner", rating: 83, position: "SF" },
+                { name: "Cade Cunningham", rating: 82, position: "PG" },
+                { name: "Jalen Williams", rating: 82, position: "SF" },
+                { name: "Alperen Şengün", rating: 82, position: "C" },
+                { name: "Darius Garland", rating: 81, position: "PG" },
+                { name: "Evan Mobley", rating: 81, position: "PF/C" },
+                { name: "Jrue Holiday", rating: 80, position: "PG" },
+                { name: "Kristaps Porziņģis", rating: 80, position: "PF/C" },
+                { name: "Rudy Gobert", rating: 80, position: "C" },
+                { name: "Mikal Bridges", rating: 79, position: "SF" },
+                { name: "Fred VanVleet", rating: 79, position: "PG" },
+                { name: "OG Anunoby", rating: 78, position: "SF" },
+                { name: "Aaron Gordon", rating: 78, position: "PF" },
+                { name: "Michael Porter Jr.", rating: 78, position: "SF" },
+                { name: "Derrick White", rating: 77, position: "SG" },
+                { name: "Brook Lopez", rating: 77, position: "C" },
+                { name: "Zaccharie Risacher", rating: 77, position: "SF" },
+                { name: "Jarrett Allen", rating: 76, position: "C" },
+                { name: "Myles Turner", rating: 76, position: "C" },
+                { name: "Alex Sarr", rating: 76, position: "C" },
+                { name: "Jaden McDaniels", rating: 75, position: "SF" },
+                { name: "Austin Reaves", rating: 75, position: "SG" },
+                { name: "Reed Sheppard", rating: 75, position: "SG" },
+                { name: "Stephon Castle", rating: 75, position: "PG" },
+                { name: "Donovan Clingan", rating: 74, position: "C" },
+                { name: "Matas Buzelis", rating: 74, position: "SF" },
+                { name: "Chris Paul", rating: 78, position: "PG" },
+                { name: "James Harden", rating: 84, position: "PG" },
+                { name: "Russell Westbrook", rating: 79, position: "PG" },
+                { name: "Klay Thompson", rating: 78, position: "SG" },
+                { name: "Draymond Green", rating: 77, position: "PF" },
+                { name: "Andrew Wiggins", rating: 76, position: "SF" },
+                { name: "Zach LaVine", rating: 83, position: "SG" },
+                { name: "DeMar DeRozan", rating: 82, position: "SG/SF" },
+                { name: "Nikola Vucevic", rating: 80, position: "C" },
+                { name: "Tobias Harris", rating: 77, position: "PF" },
+                { name: "Kyle Kuzma", rating: 80, position: "PF" },
+                { name: "Jordan Poole", rating: 76, position: "SG" },
+                { name: "CJ McCollum", rating: 81, position: "SG" },
+                { name: "Brandon Ingram", rating: 84, position: "SF" },
+                { name: "Herb Jones", rating: 75, position: "SF" },
+                { name: "Jaren Jackson Jr.", rating: 83, position: "PF/C" },
+                { name: "Desmond Bane", rating: 83, position: "SG" },
+                { name: "Marcus Smart", rating: 77, position: "PG" }
+            ];
+
+            const playerSalariesData = [
+                { name: "Stephen Curry", salary: 55.761216 },
+                { name: "Joel Embiid", salary: 51.415938 },
+                { name: "Nikola Jokic", salary: 51.415938 },
+                { name: "Kevin Durant", salary: 51.179021 },
+                { name: "Bradley Beal", salary: 50.203930 },
+                { name: "Jaylen Brown", salary: 49.205800 },
+                { name: "Devin Booker", salary: 49.205800 },
+                { name: "Karl-Anthony Towns", salary: 49.205800 },
+                { name: "Paul George", salary: 49.205800 },
+                { name: "Kawhi Leonard", salary: 49.205800 },
+                { name: "Jimmy Butler", salary: 48.798677 },
+                { name: "Giannis Antetokounmpo", salary: 48.787676 },
+                { name: "Damian Lillard", salary: 48.787676 },
+                { name: "LeBron James", salary: 48.728845 },
+                { name: "Zach LaVine", salary: 44.531940 },
+                { name: "Rudy Gobert", salary: 43.827586 },
+                { name: "Anthony Davis", salary: 43.219440 },
+                { name: "Luka Dončić", salary: 43.031940 },
+                { name: "Trae Young", salary: 43.031940 },
+                { name: "Fred VanVleet", salary: 42.846615 },
+                { name: "Anthony Edwards", salary: 42.176400 },
+                { name: "Tyrese Haliburton", salary: 42.176400 },
+                { name: "Lauri Markkanen", salary: 42.176400 },
+                { name: "Pascal Siakam", salary: 42.176400 },
+                { name: "Kyrie Irving", salary: 41.000000 },
+                { name: "Domantas Sabonis", salary: 40.500000 },
+                { name: "Ben Simmons", salary: 40.011909 },
+                { name: "Zion Williamson", salary: 36.725670 },
+                { name: "Ja Morant", salary: 36.725670 },
+                { name: "Darius Garland", salary: 36.725670 },
+                { name: "OG Anunoby", salary: 36.637932 },
+                { name: "Jamal Murray", salary: 36.016200 },
+                { name: "Brandon Ingram", salary: 36.016200 },
+                { name: "Shai Gilgeous-Alexander", salary: 35.859950 },
+                { name: "Michael Porter Jr.", salary: 35.859950 },
+                { name: "Donovan Mitchell", salary: 35.410310 },
+                { name: "Tyrese Maxey", salary: 35.147000 },
+                { name: "LaMelo Ball", salary: 35.147000 },
+                { name: "Jayson Tatum", salary: 34.848340 },
+                { name: "Bam Adebayo", salary: 34.848340 },
+                { name: "De'Aaron Fox", salary: 34.848340 },
+                { name: "Desmond Bane", salary: 34.005250 },
+                { name: "Deandre Ayton", salary: 34.005126 },
+                { name: "James Harden", salary: 33.653846 },
+                { name: "CJ McCollum", salary: 33.333333 },
+                { name: "Julius Randle", salary: 33.073920 },
+                { name: "Immanuel Quickley", salary: 32.500000 },
+                { name: "Khris Middleton", salary: 31.000000 },
+                { name: "Jrue Holiday", salary: 30.000000 },
+                { name: "Isaiah Hartenstein", salary: 30.000000 },
+                { name: "Jerami Grant", salary: 29.793104 },
+                { name: "Jordan Poole", salary: 29.651786 },
+                { name: "Dejounte Murray", salary: 29.517135 },
+                { name: "Devin Vassell", salary: 29.347826 },
+                { name: "Kristaps Porziņģis", salary: 29.268293 },
+                { name: "Tyler Herro", salary: 29.000000 },
+                { name: "Nic Claxton", salary: 27.556817 },
+                { name: "Miles Bridges", salary: 27.173913 },
+                { name: "John Collins", salary: 26.580000 },
+                { name: "Andrew Wiggins", salary: 26.276786 },
+                { name: "Anfernee Simons", salary: 25.892857 },
+                { name: "RJ Barrett", salary: 25.794643 },
+                { name: "Tobias Harris", salary: 25.365854 },
+                { name: "Jaren Jackson Jr.", salary: 25.257798 },
+                { name: "Jonathan Isaac", salary: 25.000000 },
+                { name: "Jalen Brunson", salary: 24.960001 },
+                { name: "Terry Rozier", salary: 24.924126 },
+                { name: "Kyle Kuzma", salary: 24.456061 },
+                { name: "Draymond Green", salary: 24.107143 },
+                { name: "DeMar DeRozan", salary: 23.400000 },
+                { name: "Mikal Bridges", salary: 23.300000 },
+                { name: "Jaden McDaniels", salary: 23.017242 },
+                { name: "Bruce Brown", salary: 23.000000 },
+                { name: "Brook Lopez", salary: 23.000000 },
+                { name: "Aaron Gordon", salary: 22.841455 },
+                { name: "Kentavious Caldwell-Pope", salary: 22.757000 },
+                { name: "Cameron Johnson", salary: 22.500000 },
+                { name: "Malcolm Brogdon", salary: 22.500000 },
+                { name: "Clint Capela", salary: 22.265280 },
+                { name: "Dillon Brooks", salary: 22.255493 },
+                { name: "De'Andre Hunter", salary: 21.696429 },
+                { name: "Lonzo Ball", salary: 21.395348 },
+                { name: "Marcus Smart", salary: 20.210284 },
+                { name: "Derrick White", salary: 20.071429 },
+                { name: "Jarrett Allen", salary: 20.000000 },
+                { name: "Nikola Vučević", salary: 20.000000 },
+                { name: "Myles Turner", salary: 19.928500 },
+                { name: "Jakob Poeltl", salary: 19.500000 },
+                { name: "Duncan Robinson", salary: 19.406000 },
+                { name: "Norman Powell", salary: 19.241379 },
+                { name: "Bojan Bogdanović", salary: 19.032850 },
+                { name: "Keldon Johnson", salary: 19.000000 },
+                { name: "D'Angelo Russell", salary: 18.692307 },
+                { name: "Collin Sexton", salary: 18.350000 },
+                { name: "Josh Hart", salary: 18.144000 },
+                { name: "Jusuf Nurkić", salary: 18.125000 },
+                { name: "Patrick Williams", salary: 18.000000 },
+                { name: "Harrison Barnes", salary: 18.000000 },
+                { name: "Malik Monk", salary: 17.405203 },
+                { name: "Bogdan Bogdanović", salary: 17.260000 },
+                { name: "Rui Hachimura", salary: 17.000000 },
+                { name: "Kevin Huerter", salary: 16.830357 },
+                { name: "Zach Collins", salary: 16.741200 },
+                { name: "Caris LeVert", salary: 16.615384 },
+                { name: "Luguentz Dort", salary: 16.500000 },
+                { name: "Tim Hardaway Jr.", salary: 16.193183 },
+                { name: "Klay Thompson", salary: 15.873016 },
+                { name: "Deni Avdija", salary: 15.625000 },
+                { name: "Grayson Allen", salary: 15.625000 },
+                { name: "P.J. Washington", salary: 15.500000 },
+                { name: "Max Strus", salary: 15.212068 },
+                { name: "Isaiah Stewart", salary: 15.000000 },
+                { name: "Dorian Finney-Smith", salary: 14.924167 },
+                { name: "Mitchell Robinson", salary: 14.318182 },
+                { name: "Jordan Clarkson", salary: 14.092577 },
+                { name: "Onyeka Okongwu", salary: 14.000000 },
+                { name: "Naz Reid", salary: 13.986432 },
+                { name: "Cade Cunningham", salary: 13.940809 },
+                { name: "Daniel Gafford", salary: 13.394160 },
+                { name: "Grant Williams", salary: 13.025250 },
+                { name: "Dennis Schröder", salary: 13.025250 },
+                { name: "Isaiah Joe", salary: 12.991650 },
+                { name: "Herbert Jones", salary: 12.976362 },
+                { name: "Austin Reaves", salary: 12.976362 },
+                { name: "Obi Toppin", salary: 12.975000 },
+                { name: "Cole Anthony", salary: 12.900000 },
+                { name: "De'Anthony Melton", salary: 12.822000 },
+                { name: "Kelly Olynyk", salary: 12.804878 },
+                { name: "Victor Wembanyama", salary: 12.768960 },
+                { name: "Josh Green", salary: 12.654321 },
+                { name: "Richaun Holmes", salary: 12.648321 },
+                { name: "Steven Adams", salary: 12.600000 },
+                { name: "Bobby Portis", salary: 12.578286 },
+                { name: "Zaccharie Risacher", salary: 12.569040 },
+                { name: "Brandon Clarke", salary: 12.500000 },
+                { name: "Marvin Bagley III", salary: 12.500000 },
+                { name: "Jalen Green", salary: 12.483048 },
+                { name: "Robert Williams", salary: 12.428571 },
+                { name: "Paolo Banchero", salary: 12.160800 },
+                { name: "Coby White", salary: 12.000000 },
+                { name: "Wendell Carter Jr.", salary: 11.950000 },
+                { name: "Ivica Zubac", salary: 11.743210 },
+                { name: "P.J. Tucker", salary: 12.025777 },
+                { name: "Donte DiVincenzo", salary: 11.445000 },
+                { name: "Brandon Miller", salary: 11.424600 },
+                { name: "Terance Mann", salary: 11.423077 },
+                { name: "Alex Sarr", salary: 11.245680 },
+                { name: "Evan Mobley", salary: 11.227657 },
+                { name: "Larry Nance Jr.", salary: 11.205000 },
+                { name: "Matisse Thybulle", salary: 11.025000 }
+            ];
+
+            const customSalaryMap = new Map();
+            playerSalariesData.forEach(p => customSalaryMap.set(p.name, p.salary));
+            players = players.map(player => ({
+                ...player,
+                salary: customSalaryMap.get(player.name) || Math.floor(Math.random() * (7 - 2 + 1)) + 2
+            }));
+
+            const nbaTeams = [
+                { name: "Atlanta Hawks", initials: "ATL", logoUrl: "https://upload.wikimedia.org/wikipedia/en/2/24/Atlanta_Hawks_logo.svg" },
+                { name: "Boston Celtics", initials: "BOS", logoUrl: "https://upload.wikimedia.org/wikipedia/en/8/8f/Boston_Celtics.svg" },
+                { name: "Brooklyn Nets", initials: "BKN", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Brooklyn_Nets_Logo.svg/800px-Brooklyn_Nets_Logo.svg.png" },
+                { name: "Charlotte Hornets", initials: "CHA", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Charlotte_Hornets_%282014%29.svg/512px-Charlotte_Hornets_%282014%29.svg.png" },
+                { name: "Chicago Bulls", initials: "CHI", logoUrl: "https://upload.wikimedia.org/wikipedia/en/6/67/Chicago_Bulls_logo.svg" },
+                { name: "Cleveland Cavaliers", initials: "CLE", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/4/4b/Cleveland_Cavaliers_logo.svg/800px-Cleveland_Cavaliers_logo.svg.png" },
+                { name: "Dallas Mavericks", initials: "DAL", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/9/97/Dallas_Mavericks_logo.svg/512px-Dallas_Mavericks_logo.svg.png" },
+                { name: "Denver Nuggets", initials: "DEN", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/7/76/Denver_Nuggets_logo.svg/800px-Denver_Nuggets_logo.svg.png" },
+                { name: "Detroit Pistons", initials: "DET", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Detroit_Pistons_logo.svg/800px-Detroit_Pistons_logo.svg.png" },
+                { name: "Golden State Warriors", initials: "GSW", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/0/01/Golden_State_Warriors_logo.svg/512px-Golden_State_Warriors_logo.svg.png" },
+                { name: "Houston Rockets", initials: "HOU", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/2/28/Houston_Rockets.svg/512px-Houston_Rockets.svg.png" },
+                { name: "Indiana Pacers", initials: "IND", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/Indiana_Pacers_logo.svg/800px-Indiana_Pacers_logo.svg.png" },
+                { name: "Los Angeles Clippers", initials: "LAC", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/b/bb/Los_Angeles_Clippers_logo.svg/800px-Los_Angeles_Clippers_logo.svg.png" },
+                { name: "Los Angeles Lakers", initials: "LAL", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Los_Angeles_Lakers_logo.svg/512px-Los_Angeles_Lakers_logo.svg.png" },
+                { name: "Memphis Grizzlies", initials: "MEM", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Memphis_Grizzlies.svg/512px-Memphis_Grizzlies.svg.png" },
+                { name: "Miami Heat", initials: "MIA", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f6/Miami_Heat_logo.svg/800px-Miami_Heat_logo.svg.png" },
+                { name: "Milwaukee Bucks", initials: "MIL", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/4/44/Milwaukee_Bucks_logo.svg/800px-Milwaukee_Bucks_logo.svg.png" },
+                { name: "Minnesota Timberwolves", initials: "MIN", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d9/Minnesota_Timberwolves_logo.svg/800px-Minnesota_Timberwolves_logo.svg.png" },
+                { name: "New Orleans Pelicans", initials: "NOP", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/0/0d/New_Orleans_Pelicans_logo.svg/512px-New_Orleans_Pelicans_logo.svg.png" },
+                { name: "New York Knicks", initials: "NYK", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/2/25/New_York_Knicks_logo.svg/512px-New_York_Knicks_logo.svg.png" },
+                { name: "Oklahoma City Thunder", initials: "OKC", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/5/5d/Oklahoma_City_Thunder.svg/512px-Oklahoma_City_Thunder.svg.png" },
+                { name: "Orlando Magic", initials: "ORL", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/1/10/Orlando_Magic_logo.svg/512px-Orlando_Magic_logo.svg.png" },
+                { name: "Philadelphia 76ers", initials: "PHI", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/0/0e/Philadelphia_76ers_logo.svg/512px-Philadelphia_76ers_logo.svg.png" },
+                { name: "Phoenix Suns", initials: "PHX", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/5/57/Phoenix_Suns_logo.svg/800px-Phoenix_Suns_logo.svg.png" },
+                { name: "Portland Trail Blazers", initials: "POR", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/2/21/Portland_Trail_Blazers_logo.svg/512px-Portland_Trail_Blazers_logo.svg.png" },
+                { name: "Sacramento Kings", initials: "SAC", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/c/c7/Sacramento_Kings_logo.svg/800px-Sacramento_Kings_logo.svg.png" },
+                { name: "San Antonio Spurs", initials: "SAS", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/a/a2/San_Antonio_Spurs.svg/512px-San_Antonio_Spurs.svg.png" },
+                { name: "Toronto Raptors", initials: "TOR", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Toronto_Raptors_logo.svg/512px-Toronto_Raptors_logo.svg.png" },
+                { name: "Utah Jazz", initials: "UTA", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utah_Jazz_logo_%282016%29.svg/512px-Utah_Jazz_logo_%282016%29.svg.png" },
+                { name: "Washington Wizards", initials: "WAS", logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/0/02/Washington_Wizards_logo.svg/512px-Washington_Wizards_logo.svg.png" }
+            ];
+
+            const playerPoolEl = document.getElementById('player-pool');
+            const yourTeamEl = document.getElementById('your-team');
+            const simSeasonBtn = document.getElementById('sim-season-btn');
+            const simPlayoffsBtn = document.getElementById('sim-playoffs-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const resultsDisplay = document.getElementById('results-display');
+            const confettiContainer = document.getElementById('confetti-container');
+            const teamCountEl = document.getElementById('team-count');
+            const playerCountEl = document.getElementById('player-count');
+            const draftHeaderEl = document.getElementById('draft-header');
+            const positionLabelEl = document.getElementById('position-label');
+            const startBtn = document.getElementById('start-btn');
+            const startScreen = document.getElementById('start-screen');
+            const gameContainer = document.getElementById('game-container');
+            const teamSelectionScreen = document.getElementById('team-selection-screen');
+            const teamLogosContainer = document.getElementById('team-logos-container');
+            const yourTeamNameEl = document.getElementById('your-team-name');
+            const botDraftedPlayersEl = document.getElementById('bot-drafted-players');
+            const botDraftedHeaderEl = document.getElementById('bot-drafted-header');
+            const botDraftedSectionEl = document.getElementById('bot-drafted-section');
+            const capSpaceEl = document.getElementById('cap-space');
+            const customModal = document.getElementById('custom-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalMessage = document.getElementById('modal-message');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            let yourTeam = [];
+            let botTeams = [];
+            let selectedTeamName = '';
+            let draftedPlayers = [];
+            let currentCapSpace = STARTING_CAP_SPACE;
+            let currentPlayoffRound = 0;
+            let currentSeries = { userWins: 0, oppWins: 0, opponentRating: 0, opponentTeam: null };
+
+            modalCloseBtn.addEventListener('click', () => hideModal());
+
+            function showModal(title, message) {
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                customModal.classList.add('show');
+            }
+
+            function hideModal() {
+                customModal.classList.remove('show');
+            }
+
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            function getRandomColor() {
+                const letters = '0123456789ABCDEF';
+                let color = '';
+                for (let i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+
+            function renderTeams() {
+                teamLogosContainer.innerHTML = '';
+                nbaTeams.forEach(team => {
+                    const teamCard = document.createElement('div');
+                    const imageUrl = team.logoUrl;
+                    const fallbackImageUrl = `https://placehold.co/100x100/333333/ffffff?text=${team.initials}`;
+                    teamCard.className = 'flex flex-col items-center p-3 bg-card border rounded-lg shadow-sm cursor-pointer hover:bg-accent transition-colors duration-200';
+                    teamCard.innerHTML = `
+                        <img src="${imageUrl}" alt="${team.name} Logo" class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full mb-2 object-contain" onerror="this.onerror=null;this.src='${fallbackImageUrl}'; this.style.backgroundColor = '#333333';">
+                        <p class="text-sm sm:text-base font-semibold text-center">${team.name}</p>
+                    `;
+                    teamCard.addEventListener('click', () => selectTeam(team.name));
+                    teamLogosContainer.appendChild(teamCard);
+                });
+            }
+
+            function selectTeam(teamName) {
+                selectedTeamName = teamName;
+                yourTeamNameEl.textContent = selectedTeamName;
+                currentCapSpace = STARTING_CAP_SPACE;
+                capSpaceEl.textContent = currentCapSpace.toFixed(1);
+                teamSelectionScreen.classList.add('hidden');
+                teamSelectionScreen.classList.remove('flex');
+                gameContainer.classList.remove('hidden');
+                simulateBotDraft();
+                renderPlayers();
+            }
+
+            startBtn.addEventListener('click', () => {
+                startScreen.style.display = 'none';
+                teamSelectionScreen.classList.remove('hidden');
+                teamSelectionScreen.classList.add('flex');
+                renderTeams();
+            });
+
+            // Player name to image file mapping - only includes players with actual image files
+            const playerImageMap = {
+                "Nikola Jokic": "Nikola-Jokic.jpg",
+                "Luka Dončić": "Luka-Doncic.jpg",
+                "Giannis Antetokounmpo": "Giannis-Antetokounmpo.jpg",
+                "Shai Gilgeous-Alexander": "Shai-Gilgeousalexander.jpg",
+                "Joel Embiid": "Joel-Embiid.jpg",
+                "Stephen Curry": "Stephen-Curry.jpg",
+                "Kevin Durant": "Kevin-Durant.jpg",
+                "Jayson Tatum": "Jayson-Tatum.jpg",
+                "Anthony Davis": "Anthony-Davis.jpg",
+                "Devin Booker": "Devin-Booker.jpg",
+                "Victor Wembanyama": "Victor-Wembanayma.jpg",
+                "Anthony Edwards": "Anthony-Edwards.jpg",
+                "Damian Lillard": "Damian-Lillard.jpg",
+                "Donovan Mitchell": "Donovan-Mitchell.jpg",
+                "Tyrese Haliburton": "Tyrese-Haliburton.jpg",
+                "Zion Williamson": "Zion-Williamson.jpg",
+                "Jamal Murray": "Jamal-Murray.jpg",
+                "De'Aaron Fox": "Deaaron-Fox.jpg",
+                "Kyrie Irving": "Kyrie-Irving.jpg",
+                "Jimmy Butler": "Jimmy-Butler.jpg",
+                "Kawhi Leonard": "Kawhi-Leonard.jpg",
+                "LaMelo Ball": "Lamelo-Ball.jpg",
+                "Trae Young": "Trae-Young.jpg",
+                "Bam Adebayo": "Bam-Adebayo.jpg",
+                "Jaylen Brown": "Jaylen-Brown.jpg",
+                "Jalen Brunson": "Jalen-Brunson.jpg",
+                "Domantas Sabonis": "Domantas-Sabonis.jpg",
+                "Karl-Anthony Towns": "Karlanthony-Towns.jpg",
+                "Dejounte Murray": "Dejounte-Murray.jpg",
+                "Lauri Markkanen": "Lauri-Markkanen.jpg",
+                "Chet Holmgren": "Chet-Holmgren.jpg",
+                "Paolo Banchero": "Paolo-Banchero.jpg",
+                "Julius Randle": "Julius-Randle.jpg",
+                "Scottie Barnes": "Scottie-Barnes.jpg",
+                "Franz Wagner": "Franz-Wagner.jpg",
+                "Cade Cunningham": "Cade-Cunningham.jpg",
+                "Jalen Williams": "Jalen-Williams.jpg",
+                "Alperen Şengün": "Alperin-Sengun.jpg",
+                "Darius Garland": "Darius-Garland.jpg",
+                "Evan Mobley": "Evan-Mobley.jpg",
+                "Jrue Holiday": "Jrue-Holiday.jpg",
+                "Kristaps Porziņģis": "Kristaps-Porzingis.jpg",
+                "Rudy Gobert": "Rudy-Gobert.jpg",
+                "Mikal Bridges": "Mikal-Bridges.jpg",
+                "Fred VanVleet": "Fred-Vanvleet.jpg",
+                "Aaron Gordon": "Aaron-Gordon.jpg",
+                "Michael Porter Jr.": "Michael-Porter.jpg",
+                "Derrick White": "Derrick-White.jpg",
+                "Brook Lopez": "Brook-Lopez.jpg",
+                "Jarrett Allen": "Jarrett-Allen.jpg",
+                "Myles Turner": "Myles-Turner.jpg",
+                "Jaden McDaniels": "Jaden-Mcdaniels.jpg",
+                "Austin Reaves": "Austin-Reaves.jpg",
+                "Stephon Castle": "Stephon-Castle.jpg",
+                "Andrew Wiggins": "Andrew-Wiggins.jpg",
+                "Zach LaVine": "Zach-Lavine.jpg",
+                "Nikola Vucevic": "Nikola-Vucevic.jpg",
+                "CJ McCollum": "CJ-McCollum.jpg",
+                "Brandon Ingram": "Brandan-Ingram.jpg",
+                "Herb Jones": "Herb-Jones.jpg",
+                "Jaren Jackson Jr.": "Jaren-Jackson.jpg",
+                "Desmond Bane": "Desmond-Bane.jpg",
+                "Marcus Smart": "Marcus-Smart.jpg",
+                "Russell Westbrook": "Russell-Westbrook.jpg",
+                "Draymond Green": "Draymond-Green.jpg",
+                "Jordan Poole": "Jordan-Poole.jpg",
+                "Kyle Kuzma": "Kyle-Kuzma.jpg",
+                "Paul George": "Paul-George.jpg",
+                "Pascal Siakam": "Pascal-Siakam.jpg",
+                "OG Anunoby": "OG-Anunoby.jpg",
+                "Reed Sheppard": "Reed-Sheppard.jpg",
+                "Chris Paul": "Chris-Paul.jpg",
+                "Klay Thompson": "Klay-Thompson.jpg",
+                "DeMar DeRozan": "DeMar-DeRozan.jpg",
+                "Tobias Harris": "Tobias-Harris.jpg",
+                "Khris Middleton": "Khris-Middleton.jpg",
+                "Jerami Grant": "Jerami-Grant.jpg",
+                "Devin Vassell": "Devin-Vassell.jpg",
+                "Tyler Herro": "Tyler-Herro.jpg",
+                "John Collins": "John-Collins.jpg",
+                "Anfernee Simons": "Anfernee-Simons.jpg",
+                "RJ Barrett": "RJ-Barrett.jpg",
+                "Jonathan Isaac": "Jonathan-Isaac.jpg",
+                "Terry Rozier": "Terry-Rozier.jpg",
+                "Cameron Johnson": "Cameron-Johnson.jpg",
+                "Malcolm Brogdon": "Malcolm-Brogdon.jpg",
+                "Clint Capela": "Clint-Ndumbacapela.jpg",
+                "Dillon Brooks": "Dillon-Brooks.jpg",
+                "De'Andre Hunter": "Deandre-Hunter.jpg",
+                "Lonzo Ball": "Lonzo-Ball.jpg",
+                "Jakob Poeltl": "Jakob-Poeltl.jpg",
+                "Duncan Robinson": "Duncan-Robinson.jpg",
+                "Norman Powell": "Norman-Powell.jpg",
+                "Bojan Bogdanović": "Bojan-Bogdanovic.jpg",
+                "Keldon Johnson": "Keldon-Johnson.jpg",
+                "D'Angelo Russell": "Dangelo-Russell.jpg",
+                "Collin Sexton": "Collin-Sexton.jpg",
+                "Josh Hart": "Josh-Hart.jpg",
+                "Jusuf Nurkić": "Jusuf-Nurkic.jpg",
+                "Harrison Barnes": "Harrison-Barnes.jpg",
+                "Bogdan Bogdanović": "Bogdan-Bogdanovic.jpg",
+                "Rui Hachimura": "Rui-Hachimura.jpg",
+                "Kevin Huerter": "Kevin-Huerter.jpg",
+                "Zach Collins": "Zach-Collins.jpg",
+                "Caris LeVert": "Caris-Levert.jpg",
+                "Luguentz Dort": "Lu-Dort.jpg",
+                "Tim Hardaway Jr.": "Tim-Hardaway.jpg",
+                "Deni Avdija": "Deni-Avdija.jpg",
+                "Grayson Allen": "Grayson-Allen.jpg",
+                "P.J. Washington": "PJ-Washington.jpg",
+                "Max Strus": "Max-Strus.jpg",
+                "Isaiah Stewart": "Isaiah-Stewart.jpg",
+                "Dorian Finney-Smith": "Dorian-Finneysmith.jpg",
+                "James Harden": "James-Harden.jpg",
+                "Ben Simmons": "Ben-Simmons.jpg",
+                "Ja Morant": "Ja-Morant.jpg",
+                "Bradley Beal": "Bradley-Beal.jpg",
+                "Deandre Ayton": "Deandre-Ayton.jpg",
+                "Immanuel Quickley": "Immanuel-Quickley.jpg",
+                "Isaiah Hartenstein": "Isaiah-Hartenstein.jpg",
+                "Nic Claxton": "Nic-Claxton.jpg",
+                "Miles Bridges": "Miles-Bridges.jpg",
+                "Patrick Williams": "Patrick-Williams.jpg",
+                "Malik Monk": "Malik-Monk.jpg",
+                "Kentavious Caldwell-Pope": "Kentavious-Caldwell-Pope.jpg",
+                "Al Horford": "Al-Horford.jpg",
+                "Aleksej Pokusevski": "Aleksej-Pokusevski.jpg",
+                "Alex Caruso": "Alex-Caruso.jpg",
+                "Amen Thompson": "Amen-Thompson.jpg",
+                "Ausar Thompson": "Ausar-Thompson.jpg",
+                "Bennedict Mathurin": "Bennedict-Mathurin.jpg",
+                "Bilal Coulibaly": "Bilal-Coulibaly.jpg",
+                "Blake Wesley": "Blake-Wesley.jpg",
+                "Bobby Portis": "Bobby-Portis.jpg",
+                "Bones Hyland": "Bones-Hyland.jpg",
+                "Brandin Podziemski": "Brandin-Podziemski.jpg",
+                "Brandon Clarke": "Brandon-Clarke.jpg",
+                "Brandon Miller": "Brandon-Miller.jpg",
+                "Bruce Brown": "Bruce-Brown.jpg",
+                "Bruno Fernando": "Bruno-Fernando.jpg",
+                "Bryce McGowens": "Bryce-McGowens.jpg",
+                "Caleb Houstan": "Caleb-Houstan.jpg",
+                "Cam Reddish": "Cam-Reddish.jpg",
+                "Cam Thomas": "Cam-Thomas.jpg",
+                "Cam Whitmore": "Cam-Whitmore.jpg",
+                "Cason Wallace": "Cason-Wallace.jpg",
+                "Charles Bassey": "Charles-Bassey.jpg",
+                "Chris Boucher": "Chris-Boucher.jpg",
+                "Chris Duarte": "Chris-Duarte.jpg",
+                "Christian Braun": "Christian-Braun.jpg",
+                "Christian Wood": "Christian-Wood.jpg",
+                "Coby White": "Coby-White.jpg",
+                "Cody Martin": "Cody-Martin.jpg",
+                "Cody Williams": "Cody-Williams.jpg",
+                "Cole Anthony": "Cole-Anthony.jpg",
+                "Collin Gillespie": "Collin-Gillespie.jpg",
+                "Corey Kispert": "Corey-Kispert.jpg",
+                "Craig Porter": "Craig-Porter.jpg",
+                "Dalano Banton": "Dalano-Banton.jpg",
+                "Dalen Terry": "Dalen-Terry.jpg",
+                "Dalton Knecht": "Dalton-Knecht.jpg",
+                "Daniel Gafford": "Daniel-Gafford.jpg",
+                "Dante Exum": "Dante-Exum.jpg",
+                "Dariq Whitehead": "Dariq-Whitehead.jpg",
+                "Darius Bazley": "Darius-Bazley.jpg",
+                "David Roddy": "David-Roddy.jpg",
+                "Davion Mitchell": "Davion-Mitchell.jpg",
+                "Davis Bertans": "Davis-Bertans.jpg",
+                "Day'Ron Sharpe": "Dayron-Sharpe.jpg",
+                "Dean Wade": "Dean-Wade.jpg",
+                "Dennis Schroder": "Dennis-Schroder.jpg",
+                "Dereck Lively": "Dereck-Lively.jpg",
+                "Derrick Rose": "Derrick-Rose.jpg",
+                "Devonte Graham": "Devonte-Graham.jpg",
+                "Jaden Hardy": "Jaden-Hardy.jpg",
+                "Jaden Ivey": "Jaden-Ivey.jpg",
+                "Jaden Springer": "Jaden-Springer.jpg",
+                "Jae'Sean Tate": "Jaesean-Tate.jpg",
+                "Jaime Jaquez": "Jaime-Jaquez.jpg",
+                "Jake LaRavia": "Jake-Laravia.jpg",
+                "Jalen Bridges": "Jalen-Bridges.jpg",
+                "Jalen Duren": "Jalen-Duren.jpg",
+                "Jalen Green": "Jalen-Green.jpg",
+                "Jalen Hood-Schifino": "Jalen-Hoodschifino.jpg",
+                "Jalen Johnson": "Jalen-Johnson.jpg",
+                "Jalen McDaniels": "Jalen-McDaniels.jpg",
+                "Jalen Pickett": "Jalen-Pickett.jpg",
+                "Jalen Suggs": "Jalen-Suggs.jpg",
+                "Jalen Wilson": "Jalen-Wilson.jpg",
+                "Jarace Walker": "Jarace-Walker.jpg",
+                "Jared Butler": "Jared-Butler.jpg",
+                "Jarred Vanderbilt": "Jarred-Vanderbilt.jpg",
+                "Jason Preston": "Jason-Preston.jpg",
+                "Javon Freeman-Liberty": "Javon-Freemanliberty.jpg",
+                "Jaxson Hayes": "Jaxson-Hayes.jpg",
+                "Jaylen Clark": "Jaylen-Clark.jpg",
+                "Jaylen Martin": "Jaylen-Martin.jpg",
+                "Jaylin Galloway": "Jaylin-Galloyway.jpg",
+                "Jaylin Williams": "Jaylin-Williams.jpg",
+                "Jeff Green": "Jeff-Green.jpg",
+                "Jeremiah Robinson-Earl": "Jeremiah-Robinsonearl.jpg",
+                "Jeremy Sochan": "Jeremy-Sochan.jpg",
+                "Jericho Sims": "Jericho-Sims.jpg",
+                "Jett Howard": "Jett-Howard.jpg",
+                "Jevon Carter": "Jevon-Carter.jpg",
+                "Jock Landale": "Jock-Landale.jpg",
+                "John Konchar": "John-Konchar.jpg",
+                "Johnny Davis": "Johnny-Davis.jpg",
+                "Jonathan Kuminga": "Jonathan-Kuminga.jpg",
+                "Jordan Clarkson": "Jordan-Clarkson.jpg",
+                "Jordan Hawkins": "Jordan-Hawkins.jpg",
+                "Jordan Miller": "Jordan-Miller.jpg",
+                "Jordan Walsh": "Jordan-Walsh.jpg",
+                "Jose Alvarado": "Jose-Alvarado.jpg",
+                "Josh Giddey": "Josh-Giddey.jpg",
+                "Josh Green": "Josh-Green.jpg",
+                "Josh Minott": "Josh-Minott.jpg",
+                "Josh Richardson": "Josh-Richardson.jpg",
+                "Julian Champagnie": "Julian-Champaignie.jpg",
+                "Julian Phillips": "Julian-Phillips.jpg",
+                "Julian Strawther": "Julian-Strawther.jpg",
+                "Justin Champagnie": "Justin-Champagnie.jpg",
+                "Justin Minaya": "Justin-Minaya.jpg",
+                "Keegan Murray": "Keegan-Murray.jpg",
+                "Keita Bates-Diop": "Keita-Batesdiop.jpg",
+                "Keldon Johnson": "Keldon-Johnson.jpg",
+                "Kelel Ware": "Kelel-Ware.jpg",
+                "Kelly Olynyk": "Kelly-Olynyk.jpg",
+                "Kendall Brown": "Kendall-Brown.jpg",
+                "Kenneth Lofton": "Kenneth-Lofton.jpg",
+                "Kenrich Williams": "Kenrich-Williams.jpg",
+                "Keon Ellis": "Keon-Ellis.jpg",
+                "Keshad Johnson": "Keshad-Johnson.jpg",
+                "Kobe Brown": "Kobe-Brown.jpg",
+                "Kobe Bufkin": "Kobe-Bufkin.jpg",
+                "Kris Murray": "Kris-Murray.jpg",
+                "Leonard Miller": "Leonard-Miller.jpg",
+                "Lindy Waters": "Lindy-Waters.jpg",
+                "Luka Kornet": "Luka-Kornet.jpg",
+                "Malaki Branham": "Malaki-Branham.jpg",
+                "Malcolm Hill": "Malcolm-Hill.jpg",
+                "Mamadi Diakite": "Mamadi-Diakite.jpg",
+                "Marcus Sasser": "Marcus-Sasser.jpg",
+                "Marjon Beauchamp": "Marjon-Beauchamp.jpg",
+                "Mark Williams": "Mark-Williams.jpg",
+                "Marques Bolden": "Marques-Bolden.jpg",
+                "Marvin Bagley": "Marvin-Bagley.jpg",
+                "Mason Jones": "Mason-Jones.jpg",
+                "Matisse Thybulle": "Matisse-Thybulle.jpg",
+                "Matt Ryan": "Matt-Ryan.jpg",
+                "Maxi Kleber": "Maxi-Kleber.jpg",
+                "Maxwell Lewis": "Maxwell-Lewis.jpg",
+                "Mike Conley": "Mike-Conley.jpg",
+                "Miles McBride": "Miles-McBridge.jpg",
+                "Mitchell Robinson": "Mitchell-Robinson.jpg",
+                "Moses Moody": "Moses-Moody.jpg",
+                "Mouhamed Gueye": "Mouhamed-Gueye.jpg",
+                "Nassir Little": "Nassir-Little.jpg",
+                "Naz Reid": "Naz-Reid.jpg",
+                "Nick Richards": "Nick-Richards.jpg",
+                "Nick Smith": "Nick-Smith.jpg",
+                "Nick Walker": "Nick-Walker.jpg",
+                "Nikola Jovic": "Nikola-Jovic.jpg",
+                "Noah Clowney": "Noah-Clowney.jpg",
+                "Ochai Agbaji": "Ochai-Agbaji.jpg",
+                "Olivier-Maxence Prosper": "OlivierMaxence-Prosper.jpg",
+                "Onuralp Bitim": "Onuralp-Bitim.jpg",
+                "Onyeka Okongwu": "Onyeka-Okongwu.jpg",
+                "Orlando Robinson": "Orlando-Robinson.jpg",
+                "Ousmane Dieng": "Ousmane-Dieng.jpg",
+                "PJ Tucker": "PJ-Tucker.jpg",
+                "Pat Connaughton": "Pat-Connaughton.jpg",
+                "Pat Spencer": "Pat-Spencer.jpg",
+                "Patrick Baldwin": "Patrick-Baldwin.jpg",
+                "Paul Reed": "Paul-Reed.jpg",
+                "Payton Pritchard": "Payton-Pritchard.jpg",
+                "Peyton Watson": "Peyton-Watson.jpg",
+                "Quintin Grimes": "Quintin-Grimes.jpg",
+                "Raiquan Gray": "Raiquan-Gray.jpg",
+                "Rayan Rupert": "Rayan-Rupert.jpg",
+                "Reggie Jackson": "Reggie-Jackson.jpg",
+                "Richaun Holmes": "Richaun-Holmes.jpg",
+                "Ricky Council": "Ricky-Council.jpg",
+                "Robert Williams": "Robert-Williams.jpg",
+                "Ryan Dunn": "Ryan-Dunn.jpg",
+                "Ryan Rollins": "Ryan-Rollins.jpg",
+                "Sam Hauser": "Sam-Hauser.jpg",
+                "Sam Merrill": "Sam-Merrill.jpg",
+                "Santi Aldama": "Santi-Aldama.jpg",
+                "Sasha Vezenkov": "Sasha-Vezenkov.jpg",
+                "Scoot Henderson": "Scoot-Henderson.jpg",
+                "Scotty Pippen": "Scotty-Pippen.jpg",
+                "Shaedon Sharpe": "Shaedon-Sharpe.jpg",
+                "Sidy Cissoko": "Sidy-Cissoko.jpg",
+                "Steven Adams": "Steven-Adams.jpg",
+                "TJ McConnell": "TJ-McConnell.jpg",
+                "Tari Eason": "Tari-Eason.jpg",
+                "Taylor Hendricks": "Taylor-Hendricks.jpg",
+                "Terrance Mann": "Terrance-Mann.jpg",
+                "Torrey Craig": "Torrey-Craig.jpg",
+                "Tosan Evbuomwan": "Tosan-Evbuomwan.jpg",
+                "Toumani Camara": "Toumani-Camara.jpg",
+                "Trayce Jackson-Davis": "Trayce-Jacksondavis.jpg",
+                "Tre Jones": "Tre-Jones.jpg",
+                "Tre Mann": "Tre-Mann.jpg",
+                "Trey Jemison": "Trey-Jemison.jpg",
+                "Trey Lyles": "Trey-Lyles.jpg",
+                "Trey Murphy": "Trey-Murphy.jpg",
+                "Ty Jerome": "Ty-Jerome.jpg",
+                "Vasilije Micic": "Vasilije-Micic.jpg",
+                "Vince Williams": "Vince-Williams.jpg",
+                "Walker Kessler": "Walker-Kessler.jpg",
+                "Wendell Carter": "Wendell-Carter.jpg",
+                "Wendell Moore": "Wendell-Moore.jpg",
+                "Xavier Tillman": "Xavier-Tillman.jpg",
+                "Zeke Nnaji": "Zeke-Nnaji.jpg",
+                "Ziaire Williams": "Ziaire-Williams.jpg",
+                "Zyon Pullin": "Zyon-Pullin.jpg"
+            };
+
+            // Use local images for players that have them, fallback to GitHub for others
+            function getPlayerHeadshotUrl(playerName) {
+                const imageFile = playerImageMap[playerName];
+                if (imageFile) {
+                    return imageFile; // Use local image file
+                }
+                // Fallback to GitHub for players without local images
+                const encodedName = encodeURIComponent(playerName);
+                return `https://raw.githubusercontent.com/GreenGuitar0/nba-players/main/player_images/${encodedName}.jpg`;
+            }
+
+            function createPlayerCard(player, inTeam) {
+                const card = document.createElement('div');
+                // Check for chemistry with current team
+                let chemistryIndicator = '';
+                if (!inTeam && yourTeam.length > 0) {
+                    const chemistryPartners = playerChemistry[player.name] || [];
+                    const chemistryWithTeam = chemistryPartners.filter(partner => 
+                        yourTeam.some(teammate => teammate.name === partner)
+                    );
+                    if (chemistryWithTeam.length > 0) {
+                        chemistryIndicator = `
+                            <div class="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs">
+                                <p class="text-green-800 font-semibold">🏀 Chemistry with: ${chemistryWithTeam.join(', ')}</p>
+                                <p class="text-green-700">+${chemistryWithTeam.length * 2} rating bonus</p>
+                            </div>
+                        `;
+                    }
+                }
+                card.className = 'bg-card p-3 rounded-lg flex justify-between items-center mb-2 shadow-sm border hover:bg-accent transition-colors duration-200';
+                card.innerHTML = `
+                    <div class="flex-1 flex items-center">
+                        <div class="mr-6">
+                            <p class="font-semibold text-lg text-gray-900">${player.name}</p>
+                            <p class="text-sm text-gray-600">POS: ${player.position}</p>
+                            <p class="text-lg font-bold nba-blue">SAL: $${player.salary.toFixed(2)}M</p>
+                            ${chemistryIndicator}
+                        </div>
+                        <img src="${getPlayerHeadshotUrl(player.name)}" alt="${player.name} headshot" class="w-20 h-20 object-cover rounded-full border-2 border-gray-200 bg-white ml-8" onerror="this.onerror=null;this.src='${placeholderHeadshot}';">
+                    </div>
+                    <div class="text-right ml-4">
+                        <button class="draft-btn text-sm ${inTeam ? 'bg-red-600 hover:bg-red-700 text-white' : 'nba-gradient hover:opacity-90 text-white'} rounded transition duration-300 shadow-sm player-card-button px-3 py-1">${inTeam ? 'Remove' : 'Draft'}</button>
+                    </div>
+                `;
+                const draftButton = card.querySelector('.draft-btn');
+                draftButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (inTeam) removePlayerFromTeam(player);
+                    else draftPlayer(player);
+                });
+                if (yourTeam.length === TEAM_SIZE || (!inTeam && player.salary > currentCapSpace)) {
+                    draftButton.disabled = true;
+                }
+                return card;
+            }
+
+            function createBotDraftedPlayerCard(player) {
+                const card = document.createElement('div');
+                card.className = 'bg-muted p-3 rounded-lg flex justify-between items-center shadow-sm border';
+                card.innerHTML = `
+                    <div class="flex-1 flex items-center">
+                        <div class="mr-6">
+                            <p class="font-semibold text-lg text-gray-900">${player.name}</p>
+                            <p class="text-sm text-gray-600">POS: ${player.position}</p>
+                            <p class="text-lg font-bold nba-blue">SAL: $${player.salary.toFixed(2)}M</p>
+                        </div>
+                        <img src="${getPlayerHeadshotUrl(player.name)}" alt="${player.name} headshot" class="w-16 h-16 object-cover rounded-full border-2 border-gray-200 bg-white ml-4" onerror="this.onerror=null;this.src='${placeholderHeadshot}';">
+                    </div>
+                    <div class="text-right ml-4">
+                        <p class="text-xs text-gray-500">Drafted by AI</p>
+                    </div>
+                `;
+                return card;
+            }
+
+            function simulateBotDraft() {
+                botTeams = [];
+                let availablePlayersForBots = players.filter(p => !yourTeam.some(teamPlayer => teamPlayer.name === p.name));
+                draftedPlayers = [];
+                shuffleArray(availablePlayersForBots);
+
+                for (let i = 0; i < NUM_BOT_TEAMS; i++) {
+                    const botTeamRoster = [];
+                    let botCapSpace = STARTING_CAP_SPACE;
+                    let positionsNeeded = [...DRAFT_ORDER.map(d => d.position)];
+                    shuffleArray(positionsNeeded);
+
+                    for (let k = 0; k < TEAM_SIZE && availablePlayersForBots.length > 0; k++) {
+                        let playerToDraft = null;
+                        let eligiblePlayersForCurrentPos = [];
+                        let foundPlayer = false;
+
+                        for (const targetPosition of positionsNeeded) {
+                            eligiblePlayersForCurrentPos = availablePlayersForBots
+                                .filter(p => p.position.split('/').includes(targetPosition) && p.salary <= botCapSpace)
+                                .sort((a, b) => b.rating - a.rating);
+                            if (eligiblePlayersForCurrentPos.length > 0) {
+                                const pickIndex = Math.floor(Math.random() * Math.min(eligiblePlayersForCurrentPos.length, 7));
+                                playerToDraft = eligiblePlayersForCurrentPos[pickIndex];
+                                foundPlayer = true;
+                                positionsNeeded = positionsNeeded.filter(pos => pos !== targetPosition);
+                                break;
+                            }
+                        }
+
+                        if (!foundPlayer && availablePlayersForBots.length > 0) {
+                            const sortedRemainingPlayers = availablePlayersForBots
+                                .filter(p => p.salary <= botCapSpace)
+                                .sort((a, b) => b.rating - a.rating);
+                            if (sortedRemainingPlayers.length > 0) {
+                                const pickIndex = Math.floor(Math.random() * Math.min(sortedRemainingPlayers.length, 10));
+                                playerToDraft = sortedRemainingPlayers[pickIndex];
+                                foundPlayer = true;
+                                if (playerToDraft) {
+                                    positionsNeeded = positionsNeeded.filter(pos => !playerToDraft.position.split('/').includes(pos));
+                                }
+                            }
+                        }
+
+                        if (playerToDraft) {
+                            botTeamRoster.push(playerToDraft);
+                            draftedPlayers.push(playerToDraft);
+                            botCapSpace -= playerToDraft.salary;
+                            availablePlayersForBots = availablePlayersForBots.filter(p => p.name !== playerToDraft.name);
+                        } else {
+                            break;
+                        }
+                    }
+                    botTeams.push(botTeamRoster);
+                }
+            }
+
+            function renderBotDraftedPlayers(currentPosition, currentLabel) {
+                botDraftedPlayersEl.innerHTML = '';
+                botDraftedHeaderEl.textContent = `Other Teams' Drafted ${currentLabel}`;
+                const relevantBotDraftedPlayers = draftedPlayers
+                    .filter(p => p.position.split('/').includes(currentPosition))
+                    .sort((a, b) => b.rating - a.rating);
+                if (relevantBotDraftedPlayers.length > 0) {
+                    relevantBotDraftedPlayers.forEach(p => botDraftedPlayersEl.appendChild(createBotDraftedPlayerCard(p)));
+                } else {
+                    botDraftedPlayersEl.innerHTML = `<p class="text-center text-gray-600">No ${currentLabel} have been drafted by other teams yet.</p>`;
+                }
+            }
+
+            function renderPlayers() {
+                playerPoolEl.innerHTML = '';
+                yourTeamEl.innerHTML = '';
+                capSpaceEl.textContent = currentCapSpace.toFixed(1);
+                const currentPositionInfo = DRAFT_ORDER[yourTeam.length];
+                const currentPosition = currentPositionInfo?.position;
+                const currentLabel = currentPositionInfo?.label || "Players";
+                const availablePlayers = players
+                    .filter(p => !yourTeam.some(teamPlayer => teamPlayer.name === p.name))
+                    .filter(p => !draftedPlayers.some(botPlayer => botPlayer.name === p.name))
+                    .filter(p => currentPosition ? p.position.split('/').includes(currentPosition) : true)
+                    .sort((a, b) => b.rating - a.rating);
+
+                availablePlayers.forEach(p => {
+                    const card = createPlayerCard(p, false);
+                    const draftButton = card.querySelector('.draft-btn');
+                    if (p.salary > currentCapSpace || yourTeam.length === TEAM_SIZE) draftButton.disabled = true;
+                    playerPoolEl.appendChild(card);
+                });
+
+                yourTeam.sort((a, b) => b.rating - a.rating).forEach(p => {
+                    const card = createPlayerCard(p, true);
+                    const removeButton = card.querySelector('.draft-btn');
+                    if (yourTeam.length === TEAM_SIZE && simSeasonBtn.style.display !== 'none') removeButton.disabled = true;
+                    yourTeamEl.appendChild(card);
+                });
+
+                teamCountEl.textContent = `${yourTeam.length}`;
+                playerCountEl.textContent = `${availablePlayers.length}`;
+                positionLabelEl.textContent = currentLabel;
+                simSeasonBtn.disabled = yourTeam.length !== TEAM_SIZE;
+                draftHeaderEl.textContent = yourTeam.length < TEAM_SIZE ? `Draft ${currentPositionInfo.label.slice(0, -1)}` : 'Your Team is Ready';
+
+                if (yourTeam.length === TEAM_SIZE) botDraftedSectionEl.classList.add('hidden');
+                else {
+                    botDraftedSectionEl.classList.remove('hidden');
+                    renderBotDraftedPlayers(currentPosition, currentLabel);
+                }
+            }
+
+            function draftPlayer(player) {
+                if (yourTeam.length >= TEAM_SIZE) {
+                    resultsDisplay.textContent = "Your team is full! Remove a player to draft another.";
+                    return;
+                }
+                if (player.salary > currentCapSpace) {
+                    showModal("Insufficient Cap Space!", `You need $${player.salary.toFixed(2)}M to draft ${player.name}, but you only have $${currentCapSpace.toFixed(1)}M remaining.`);
+                    return;
+                }
+                const currentPositionInfo = DRAFT_ORDER[yourTeam.length];
+                if (!player.position.split('/').includes(currentPositionInfo.position)) {
+                    resultsDisplay.textContent = `Please draft a ${currentPositionInfo.label.slice(0, -1)}.`;
+                    return;
+                }
+                yourTeam.push(player);
+                currentCapSpace -= player.salary;
+                renderPlayers();
+                resultsDisplay.textContent = `You drafted ${player.name} as your ${currentPositionInfo.label.slice(0, -1)}. Remaining Cap: $${currentCapSpace.toFixed(1)}M.`;
+            }
+
+            function removePlayerFromTeam(player) {
+                if (yourTeam.length === TEAM_SIZE && simSeasonBtn.style.display !== 'none') {
+                    resultsDisplay.textContent = "You cannot remove players once your team is complete for drafting.";
+                    return;
+                }
+                yourTeam = yourTeam.filter(p => p.name !== player.name);
+                currentCapSpace += player.salary;
+                renderPlayers();
+                resultsDisplay.textContent = `Removed ${player.name} from your team. Remaining Cap: $${currentCapSpace.toFixed(1)}M.`;
+            }
+
+            simSeasonBtn.addEventListener('click', () => {
+                const teamRatingData = getTeamRatingWithChemistry(yourTeam);
+                const botTotalRatings = botTeams.map(team => {
+                    const botTeamData = getTeamRatingWithChemistry(team);
+                    return botTeamData.totalRating;
+                });
+                const avgBotRating = botTotalRatings.reduce((sum, rating) => sum + rating, 0) / botTeams.length;
+                const ratingDiff = teamRatingData.totalRating - avgBotRating;
+                const winProb = 0.5 + 0.01 * ratingDiff;
+                const clampedWinProb = Math.max(0, Math.min(1, winProb));
+                const expectedWins = 82 * clampedWinProb;
+                const wins = Math.round(expectedWins + (Math.random() * 10 - 5));
+                const finalWins = Math.max(0, Math.min(82, wins));
+                const losses = 82 - finalWins;
+
+                let chemistryInfo = '';
+                if (teamRatingData.chemistryBonus > 0) {
+                    chemistryInfo = `
+                        <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="font-semibold text-green-800 mb-2">🏀 Team Chemistry Bonus: +${teamRatingData.chemistryBonus} Rating</p>
+                            <p class="text-sm text-green-700 mb-2">Chemistry Pairs:</p>
+                            <ul class="text-sm text-green-700 list-disc list-inside">
+                                ${teamRatingData.chemistryPairs.map(pair => `<li>${pair}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                resultsDisplay.innerHTML = `
+                    <p class="text-xl font-bold text-green-600">Regular Season Finished!</p>
+                    <p>Your team's record: <span class="text-green-600">${finalWins}</span> - <span class="text-red-600">${losses}</span></p>
+                    <p class="text-sm text-gray-600 mt-2">Base Team Rating: ${teamRatingData.baseRating} | Total Rating with Chemistry: ${teamRatingData.totalRating}</p>
+                    ${chemistryInfo}
+                `;
+                if (finalWins >= PLAYOFF_WIN_THRESHOLD) {
+                    resultsDisplay.innerHTML += '<p class="text-black mt-2 font-semibold">Congratulations, you made the playoffs!</p>';
+                    simPlayoffsBtn.style.display = 'inline-block';
+                    currentPlayoffRound = 1;
+                    simPlayoffsBtn.textContent = 'Simulate First Round';
+                    resetBtn.style.display = 'none'; // Hide "Draft Again" when making playoffs
+                } else {
+                    resultsDisplay.innerHTML += '<p class="text-black mt-2 font-semibold">You missed the playoffs. Better luck next year!</p>';
+                    resetBtn.style.display = 'inline-block'; // Show "Draft Again" when missing playoffs
+                }
+                simSeasonBtn.style.display = 'none';
+                simSeasonBtn.dataset.regularSeasonWins = finalWins;
+            });
+
+            function getOpponentRating(round, regularSeasonWins) {
+                const baseOpponentRatings = [83, 88, 92, 96]; // R1, R2, CF, F
+                let opponentRating = baseOpponentRatings[round - 1];
+                const winAdvantage = (regularSeasonWins - PLAYOFF_WIN_THRESHOLD) / 5;
+                opponentRating -= winAdvantage * (0.5 + (round - 1) * 0.1);
+                opponentRating += (Math.random() * 10) - 5;
+                return Math.max(70, Math.min(99, opponentRating));
+            }
+
+            function sortTeamByPosition(team) {
+                const sortedTeam = [];
+                const usedPlayerNames = new Set();
+                DRAFT_ORDER.forEach(orderInfo => {
+                    const position = orderInfo.position;
+                    const availablePlayers = team.filter(p => !usedPlayerNames.has(p.name));
+                    let playerForPos = availablePlayers.find(p => p.position.split('/')[0] === position);
+                    if (!playerForPos) {
+                        playerForPos = availablePlayers.find(p => p.position.split('/').includes(position));
+                    }
+                    if (playerForPos) {
+                        sortedTeam.push(playerForPos);
+                        usedPlayerNames.add(playerForPos.name);
+                    } else {
+                        sortedTeam.push({ name: 'Empty', salary: 0, position: 'N/A' });
+                    }
+                });
+                team.forEach(p => {
+                    if (!usedPlayerNames.has(p.name)) {
+                        sortedTeam.push(p);
+                    }
+                });
+                return sortedTeam.slice(0, 5);
+            }
+
+            function buildComparisonHtml(userTeam, opponentTeam) {
+                if (!opponentTeam) return '';
+                const sortedOpponentTeam = sortTeamByPosition(opponentTeam);
+                let tableHtml = '<div class="mt-4 text-left"><h4 class="font-semibold text-lg mb-2 text-center">Positional Matchup</h4><table class="w-full">';
+                tableHtml += '<thead><tr class="text-muted-foreground"><th class="p-2">POS</th><th class="p-2 text-center">Your Team</th><th class="p-2 text-center">Opponent</th></tr></thead>';
+                tableHtml += '<tbody>';
+
+                for (let i = 0; i < DRAFT_ORDER.length; i++) {
+                    const position = DRAFT_ORDER[i].position;
+                    const userPlayer = userTeam[i];
+                    const opponentPlayer = sortedOpponentTeam[i];
+
+                    tableHtml += `<tr class="border-b">`;
+                    tableHtml += `<td class="p-2 font-bold">${position}</td>`;
+                    tableHtml += `<td class="p-2 text-center"><div>${userPlayer.name}</div><div class="text-sm text-muted-foreground">$${userPlayer.salary.toFixed(2)}M</div></td>`;
+                    tableHtml += `<td class="p-2 text-center"><div>${opponentPlayer.name}</div><div class="text-sm text-muted-foreground">$${opponentPlayer.salary.toFixed(2)}M</div></td>`;
+                    tableHtml += `</tr>`;
+                }
+                tableHtml += '</tbody></table></div>';
+                return tableHtml;
+            }
+
+            function simulateGame(userAvgRating, opponentRating) {
+                // This logic is designed to be consistent with the regular season's win probability calculation.
+                // It uses a linear model based on the difference in average ratings.
+                // The 0.05 multiplier is derived from the regular season's 0.01 multiplier on total rating difference (0.01 * 5 = 0.05).
+                const ratingDiff = userAvgRating - opponentRating;
+                const probability = 0.5 + 0.05 * ratingDiff;
+                const clampedProb = Math.max(0, Math.min(1, probability));
+                return Math.random() < clampedProb;
+            }
+
+            simPlayoffsBtn.addEventListener('click', () => {
+                const teamRatingData = getTeamRatingWithChemistry(yourTeam);
+                const avgRating = teamRatingData.totalRating / TEAM_SIZE;
+                const regularSeasonWins = parseInt(simSeasonBtn.dataset.regularSeasonWins || 0);
+
+                const roundNames = ["First Round", "Conference Semifinals", "Conference Finals", "NBA Finals"];
+
+                if (currentPlayoffRound === 1 || currentPlayoffRound === 2) { // First Round & Semis
+                    const opponentRating = getOpponentRating(currentPlayoffRound, regularSeasonWins);
+                    const wonRound = simulateGame(avgRating, opponentRating);
+
+                    if (wonRound) {
+                        resultsDisplay.innerHTML = `<p class="text-xl font-bold text-green-600">Advanced!</p> <p>You won the ${roundNames[currentPlayoffRound - 1]}!</p>`;
+                        currentPlayoffRound++;
+                        if (currentPlayoffRound === 3) {
+                             simPlayoffsBtn.textContent = `Simulate Conference Finals Game 1`;
+                        } else {
+                            simPlayoffsBtn.textContent = `Simulate ${roundNames[currentPlayoffRound - 1]}`;
+                        }
+                    } else {
+                        resultsDisplay.innerHTML = `
+                            <p class="text-2xl font-bold text-red-600">Eliminated!</p>
+                            <p class="mt-2 text-gray-700">Your team was eliminated in the ${roundNames[currentPlayoffRound - 1]}. Better luck next season!</p>
+                        `;
+                        simPlayoffsBtn.style.display = 'none';
+                        resetBtn.style.display = 'inline-block'; // Show "Draft Again" when eliminated
+                        currentPlayoffRound = 0;
+                    }
+                } else if (currentPlayoffRound === 3 || currentPlayoffRound === 4) { // Conference Finals & Finals
+                    const roundName = roundNames[currentPlayoffRound - 1];
+                    
+                    if (currentSeries.userWins === 0 && currentSeries.oppWins === 0) {
+                        currentSeries.opponentRating = getOpponentRating(currentPlayoffRound, regularSeasonWins);
+                        let closestTeam = botTeams[0];
+                        let minDiff = Infinity;
+                        botTeams.forEach(team => {
+                            if (team.length !== TEAM_SIZE) return;
+                            const botTeamData = getTeamRatingWithChemistry(team);
+                            const botAvgRating = botTeamData.totalRating / TEAM_SIZE;
+                            const diff = Math.abs(botAvgRating - currentSeries.opponentRating);
+                            if (diff < minDiff) {
+                                minDiff = diff;
+                                closestTeam = team;
+                            }
+                        });
+                        currentSeries.opponentTeam = closestTeam;
+                        resultsDisplay.innerHTML = `<p class="text-xl font-bold">Starting ${roundName}!</p><p>First to 4 wins.</p>`;
+                    }
+
+                    const userWonGame = simulateGame(avgRating, currentSeries.opponentRating);
+                    if (userWonGame) {
+                        currentSeries.userWins++;
+                    } else {
+                        currentSeries.oppWins++;
+                    }
+
+                    const gameResultMessage = userWonGame ? "You won the game!" : "You lost the game.";
+                    const comparisonHtml = buildComparisonHtml(yourTeam, currentSeries.opponentTeam);
+
+                    resultsDisplay.innerHTML = `
+                        <p class="text-xl font-bold">${roundName} - Best of 7</p>
+                        <p>Your Team: <span class="text-green-600">${currentSeries.userWins}</span> | Opponent: <span class="text-red-600">${currentSeries.oppWins}</span></p>
+                        ${comparisonHtml}
+                        <p class="mt-4 font-semibold text-center">${gameResultMessage}</p>
+                    `;
+
+                    if (currentSeries.userWins === 4) {
+                        if (currentPlayoffRound === 4) { // Won finals
+                            resultsDisplay.innerHTML = `
+                                <p class="text-3xl font-bold text-blue-700 animate-pulse">🏆 CHAMPIONSHIP WON! 🏆</p>
+                                <p class="mt-2 text-blue-600">Your team battled through the playoffs and emerged victorious!</p>
+                            `;
+                            triggerConfetti();
+                            simPlayoffsBtn.style.display = 'none';
+                            resetBtn.style.display = 'inline-block'; // Show "Draft Again" after winning championship
+                            currentPlayoffRound = 0;
+                        } else { // Won Conference Finals
+                            resultsDisplay.innerHTML += `<p class="mt-4 text-green-600 font-bold">You won the Conference Finals and advanced to the NBA Finals!</p>`;
+                            currentPlayoffRound++;
+                            simPlayoffsBtn.textContent = 'Simulate NBA Finals Game 1';
+                        }
+                        currentSeries = { userWins: 0, oppWins: 0, opponentRating: 0, opponentTeam: null };
+                    } else if (currentSeries.oppWins === 4) {
+                        resultsDisplay.innerHTML = `
+                            <p class="text-2xl font-bold text-red-600">Eliminated!</p>
+                            <p class="mt-2 text-gray-700">Your team was eliminated in the ${roundName}. Better luck next season!</p>
+                        `;
+                        simPlayoffsBtn.style.display = 'none';
+                        currentPlayoffRound = 0;
+                        currentSeries = { userWins: 0, oppWins: 0, opponentRating: 0, opponentTeam: null };
+                    } else {
+                        const nextGame = currentSeries.userWins + currentSeries.oppWins + 1;
+                        simPlayoffsBtn.textContent = `Simulate ${roundName} Game ${nextGame}`;
+                    }
+                }
+            });
+
+            resetBtn.addEventListener('click', () => {
+                yourTeam = [];
+                botTeams = [];
+                draftedPlayers = [];
+                currentCapSpace = STARTING_CAP_SPACE;
+                resultsDisplay.textContent = 'Draft your 5-player team to begin!';
+                simPlayoffsBtn.style.display = 'none';
+                simPlayoffsBtn.textContent = 'Simulate Playoffs';
+                simSeasonBtn.style.display = 'inline-block';
+                resetBtn.style.display = 'none';
+                teamSelectionScreen.classList.remove('hidden');
+                teamSelectionScreen.classList.add('flex');
+                gameContainer.classList.add('hidden');
+                currentPlayoffRound = 0;
+                currentSeries = { userWins: 0, oppWins: 0, opponentRating: 0, opponentTeam: null };
+                renderTeams();
+            });
+
+            function triggerConfetti() {
+                const colors = ['#1d4ed8', '#3b82f6', '#60a5fa', '#dc2626', '#ef4444'];
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = `${Math.random() * 100}vw`;
+                    confetti.style.top = `${-Math.random() * 20}px`;
+                    confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+                    confetti.style.animationDuration = `${3 + Math.random() * 3}s`;
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    confettiContainer.appendChild(confetti);
+                    confetti.addEventListener('animationend', () => confetti.remove());
+                }
+            }
+
+            function calculateChemistryBonus(team) {
+                let totalBonus = 0;
+                let chemistryPairs = [];
+                
+                for (let i = 0; i < team.length; i++) {
+                    const player = team[i];
+                    const chemistryPartners = playerChemistry[player.name] || [];
+                    
+                    for (let j = i + 1; j < team.length; j++) {
+                        const teammate = team[j];
+                        if (chemistryPartners.includes(teammate.name)) {
+                            totalBonus += 2; // +2 rating bonus per chemistry pair
+                            chemistryPairs.push(`${player.name} + ${teammate.name}`);
+                        }
+                    }
+                }
+                
+                return { bonus: totalBonus, pairs: chemistryPairs };
+            }
+
+            function getTeamRatingWithChemistry(team) {
+                const baseRating = team.reduce((sum, p) => sum + p.rating, 0);
+                const chemistry = calculateChemistryBonus(team);
+                return {
+                    totalRating: baseRating + chemistry.bonus,
+                    baseRating: baseRating,
+                    chemistryBonus: chemistry.bonus,
+                    chemistryPairs: chemistry.pairs
+                };
+            }
+        });
+    </script>
+</body>
+</html>
