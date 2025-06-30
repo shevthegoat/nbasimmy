@@ -1841,19 +1841,19 @@
                     card.className = 'bg-muted p-3 rounded-lg flex justify-between items-center shadow-sm border';
                     card.innerHTML = `
                         <div class="flex-1 flex items-center">
-                            <div class="mr-6">
+                            <div class="mr-4">
                                 <p class="font-semibold text-lg text-gray-900">${player.name}</p>
                                 <p class="text-sm text-gray-600">POS: ${player.position}</p>
                                 <p class="text-lg font-bold nba-blue">SAL: $${(player.salary || 0).toFixed(2)}M</p>
                             </div>
-                            <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-3">
                                 <img src="${getPlayerHeadshotUrl(player.name)}" alt="${player.name} headshot" class="w-16 h-16 object-contain rounded-full border-2 border-gray-200 bg-white" onerror="this.style.display='none';" onload="this.style.display='block';">
-                                <button onclick="showPlayerInfo('${player.name}')" class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded transition duration-300 shadow-sm">
-                                    Player Information
+                                <button onclick="showPlayerInfo('${player.name}')" class="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded transition duration-300 shadow-sm">
+                                    Info
                                 </button>
                             </div>
                         </div>
-                        <div class="text-right ml-4">
+                        <div class="text-right ml-2">
                             <p class="text-xs text-gray-500">Drafted by AI</p>
                         </div>
                     `;
@@ -1869,7 +1869,7 @@
                             <p class="text-sm text-gray-600">POS: ${player.position}</p>
                             <p class="text-lg font-bold nba-blue">SAL: $${(player.salary || 0).toFixed(2)}M</p>
                         </div>
-                        <div class="text-right ml-4">
+                        <div class="text-right ml-2">
                             <p class="text-xs text-gray-500">Drafted by AI</p>
                         </div>
                     `;
