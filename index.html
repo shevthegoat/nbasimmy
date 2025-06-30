@@ -289,7 +289,7 @@
                     </div>
                     <div class="bg-gray-50 rounded-lg p-4">
                         <p class="text-sm text-gray-600">Roster Spots</p>
-                        <p class="text-2xl font-bold text-blue-600"><span id="roster-spots">5</span>/15</p>
+                        <p class="text-2xl font-bold text-blue-600"><span id="roster-spots">5</span>/5</p>
                     </div>
                     <div class="bg-gray-50 rounded-lg p-4">
                         <p class="text-sm text-gray-600">Team Rating</p>
@@ -308,9 +308,6 @@
                         </button>
                         <button id="trades-tab" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium">
                             Trades
-                        </button>
-                        <button id="waivers-tab" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium">
-                            Waivers
                         </button>
                         <button id="simulate-tab" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium">
                             Simulate Season
@@ -360,13 +357,6 @@
                     </div>
                 </div>
 
-                <!-- Waivers Tab -->
-                <div id="waivers-content" class="tab-content hidden p-6">
-                    <h3 class="text-xl font-semibold mb-4">Waiver Wire</h3>
-                    <p class="text-gray-600 mb-4">Players recently released by other teams are available here.</p>
-                    <div id="waivers-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
-                </div>
-
                 <!-- Simulate Season Tab -->
                 <div id="simulate-content" class="tab-content hidden p-6">
                     <h3 class="text-xl font-semibold mb-4">Season Simulation</h3>
@@ -377,6 +367,16 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Season Button Section -->
+    <div class="text-center mt-8 mb-8">
+        <button id="start-season-btn-main" class="nba-gradient hover:opacity-90 text-white font-bold py-3 px-8 rounded-lg text-xl transition duration-300">
+            Start Season
+        </button>
+    </div>
             </div>
         </div>
     </div>
@@ -1816,11 +1816,9 @@
             const backToDraftBtn = document.getElementById('back-to-draft-btn');
             const freeAgentsTab = document.getElementById('free-agents-tab');
             const tradesTab = document.getElementById('trades-tab');
-            const waiversTab = document.getElementById('waivers-tab');
             const simulateTab = document.getElementById('simulate-tab');
             const freeAgentsContent = document.getElementById('free-agents-content');
             const tradesContent = document.getElementById('trades-content');
-            const waiversContent = document.getElementById('waivers-content');
             const simulateContent = document.getElementById('simulate-content');
             const freeAgentsList = document.getElementById('free-agents-list');
             const faSearch = document.getElementById('fa-search');
@@ -1829,8 +1827,8 @@
             const tradePartnerSelect = document.getElementById('trade-partner-select');
             const tradePartnerTeam = document.getElementById('trade-partner-team');
             const proposeTradeBtn = document.getElementById('propose-trade-btn');
-            const waiversList = document.getElementById('waivers-list');
             const startSeasonBtn = document.getElementById('start-season-btn');
+            const startSeasonBtnMain = document.getElementById('start-season-btn-main');
 
             let yourTeam = [];
             let botTeams = [];
@@ -1954,7 +1952,7 @@
 
             window.signFreeAgent = function(playerName) {
                 const player = players.find(p => p.name === playerName);
-                if (player && currentCapSpace >= player.salary && yourTeam.length < 15) {
+                if (player && currentCapSpace >= player.salary && yourTeam.length < 5) {
                     yourTeam.push(player);
                     currentCapSpace -= player.salary;
                     managementCapSpace.textContent = currentCapSpace.toFixed(1);
@@ -1968,20 +1966,20 @@
                     initializeFreeAgents(); // Refresh free agents list
                 } else if (currentCapSpace < player.salary) {
                     showModal('Insufficient Cap Space', `You need $${(player.salary - currentCapSpace).toFixed(1)}M more cap space to sign ${playerName}.`);
-                } else if (yourTeam.length >= 15) {
-                    showModal('Roster Full', 'Your roster is at maximum capacity (15 players).');
+                } else if (yourTeam.length >= 5) {
+                    showModal('Roster Full', 'Your roster is at maximum capacity (5 players).');
                 }
             };
 
             // Tab switching functionality
             function switchTab(activeTab, activeContent) {
                 // Hide all tab contents
-                [freeAgentsContent, tradesContent, waiversContent, simulateContent].forEach(content => {
+                [freeAgentsContent, tradesContent, simulateContent].forEach(content => {
                     content.classList.add('hidden');
                 });
                 
                 // Remove active state from all tabs
-                [freeAgentsTab, tradesTab, waiversTab, simulateTab].forEach(tab => {
+                [freeAgentsTab, tradesTab, simulateTab].forEach(tab => {
                     tab.classList.remove('border-blue-500', 'text-blue-600');
                     tab.classList.add('border-transparent', 'text-gray-500');
                 });
@@ -1995,7 +1993,6 @@
             // Tab event listeners
             freeAgentsTab.addEventListener('click', () => switchTab(freeAgentsTab, freeAgentsContent));
             tradesTab.addEventListener('click', () => switchTab(tradesTab, tradesContent));
-            waiversTab.addEventListener('click', () => switchTab(waiversTab, waiversContent));
             simulateTab.addEventListener('click', () => switchTab(simulateTab, simulateContent));
 
             // Back to draft button
@@ -2004,8 +2001,17 @@
                 gameContainer.classList.remove('hidden');
             });
 
-            // Start season button
+            // Start season button (in tab)
             startSeasonBtn.addEventListener('click', () => {
+                startSeason();
+            });
+
+            // Main start season button
+            startSeasonBtnMain.addEventListener('click', () => {
+                startSeason();
+            });
+
+            function startSeason() {
                 // Navigate back to game container and show simulate season results
                 teamManagementPage.classList.add('hidden');
                 gameContainer.classList.remove('hidden');
@@ -2055,7 +2061,7 @@
                 }
                 finishBtn.style.display = 'none';
                 finishBtn.dataset.regularSeasonWins = finalWins;
-            });
+            }
 
             function showModal(title, message) {
                 modalTitle.textContent = title;
