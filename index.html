@@ -1931,14 +1931,22 @@
 
             function renderTradePartnerTeam(teamName) {
                 tradePartnerTeam.innerHTML = '';
-                // Find the bot team that matches the selected team name
-                const botTeam = botTeams.find(team => {
-                    // Check if any player in the team has a team property that matches
-                    return team.some(player => player.team === teamName);
-                });
                 
-                if (botTeam) {
-                    botTeam.forEach(player => {
+                // Create a random 5-player roster for the selected team
+                const availablePlayers = players.filter(p => 
+                    !yourTeam.some(yourPlayer => yourPlayer.name === p.name) &&
+                    !botTeams.flat().some(botPlayer => botPlayer.name === p.name)
+                );
+                
+                // If not enough available players, use all players
+                const playerPool = availablePlayers.length >= 5 ? availablePlayers : players;
+                
+                // Randomly select 5 players for this team
+                const shuffledPlayers = [...playerPool].sort(() => Math.random() - 0.5);
+                const teamRoster = shuffledPlayers.slice(0, 5);
+                
+                if (teamRoster.length > 0) {
+                    teamRoster.forEach(player => {
                         const playerItem = document.createElement('div');
                         playerItem.className = 'flex items-center justify-between p-2 bg-white rounded border mb-2';
                         playerItem.innerHTML = `
@@ -1950,7 +1958,7 @@
                         tradePartnerTeam.appendChild(playerItem);
                     });
                 } else {
-                    tradePartnerTeam.innerHTML = '<p class="text-gray-500 text-sm">No players found for this team.</p>';
+                    tradePartnerTeam.innerHTML = '<p class="text-gray-500 text-sm">No players available for this team.</p>';
                 }
             }
 
