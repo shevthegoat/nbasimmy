@@ -270,61 +270,42 @@
     <script>
         // Player information database with achievements and awards
         const playerInfoMap = {
+            "Nikola Jokic": {
+                achievements: [
+                    "3x NBA MVP (2021, 2022, 2024)",
+                    "NBA Finals MVP (2023)",
+                    "NBA Champion (2023)",
+                    "6x NBA All-Star",
+                    "6x All-NBA Team",
+                    "NBA All-Star Game MVP (2024)"
+                ]
+            },
+            "Luka Doncic": {
+                achievements: [
+                    "5x NBA All-Star",
+                    "5x All-NBA Team",
+                    "Rookie of the Year (2019)",
+                    "NBA All-Star Game MVP (2023)",
+                    "4x NBA Scoring Champion"
+                ]
+            },
             "Giannis Antetokounmpo": {
                 achievements: [
                     "2x NBA MVP (2019, 2020)",
                     "NBA Finals MVP (2021)",
                     "Defensive Player of the Year (2020)",
-                    "7x NBA All-Star",
-                    "7x All-NBA Team",
+                    "9x NBA All-Star",
+                    "8x All-NBA Team",
                     "5x NBA All-Defensive Team",
                     "Most Improved Player (2017)",
                     "NBA All-Star Game MVP (2021)",
                     "NBA Champion (2021)"
                 ]
             },
-            "LeBron James": {
+            "Shai Gilgeous-Alexander": {
                 achievements: [
-                    "4x NBA MVP (2009, 2010, 2012, 2013)",
-                    "4x NBA Finals MVP",
-                    "4x NBA Champion",
-                    "19x NBA All-Star",
-                    "18x All-NBA Team",
-                    "6x NBA All-Defensive Team",
-                    "NBA All-Star Game MVP (2006, 2008, 2018)",
-                    "Rookie of the Year (2004)"
-                ]
-            },
-            "Stephen Curry": {
-                achievements: [
-                    "2x NBA MVP (2015, 2016)",
-                    "4x NBA Champion",
-                    "NBA Finals MVP (2022)",
-                    "9x NBA All-Star",
-                    "8x All-NBA Team",
-                    "NBA All-Star Game MVP (2022)",
-                    "3-Point Contest Champion (2015, 2021)"
-                ]
-            },
-            "Kevin Durant": {
-                achievements: [
-                    "NBA MVP (2014)",
-                    "2x NBA Finals MVP",
-                    "2x NBA Champion",
-                    "13x NBA All-Star",
-                    "10x All-NBA Team",
-                    "NBA All-Star Game MVP (2012, 2019)",
-                    "Rookie of the Year (2008)",
-                    "4x NBA Scoring Champion"
-                ]
-            },
-            "Nikola Jokic": {
-                achievements: [
-                    "2x NBA MVP (2021, 2022)",
-                    "NBA Finals MVP (2023)",
-                    "NBA Champion (2023)",
-                    "6x NBA All-Star",
-                    "5x All-NBA Team",
+                    "2x NBA All-Star",
+                    "1x All-NBA Team",
                     "NBA All-Star Game MVP (2024)"
                 ]
             },
@@ -337,20 +318,27 @@
                     "2x NBA Scoring Champion"
                 ]
             },
-            "Luka Doncic": {
+            "Stephen Curry": {
                 achievements: [
-                    "5x NBA All-Star",
-                    "4x All-NBA Team",
-                    "Rookie of the Year (2019)",
-                    "NBA All-Star Game MVP (2023)"
+                    "2x NBA MVP (2015, 2016)",
+                    "4x NBA Champion",
+                    "NBA Finals MVP (2022)",
+                    "9x NBA All-Star",
+                    "9x All-NBA Team",
+                    "NBA All-Star Game MVP (2022)",
+                    "3-Point Contest Champion (2015, 2021)"
                 ]
             },
-            "Damian Lillard": {
+            "Kevin Durant": {
                 achievements: [
-                    "7x NBA All-Star",
-                    "7x All-NBA Team",
-                    "NBA 75th Anniversary Team",
-                    "Rookie of the Year (2013)"
+                    "NBA MVP (2014)",
+                    "2x NBA Finals MVP",
+                    "2x NBA Champion",
+                    "13x NBA All-Star",
+                    "11x All-NBA Team",
+                    "NBA All-Star Game MVP (2012, 2019)",
+                    "Rookie of the Year (2008)",
+                    "4x NBA Scoring Champion"
                 ]
             },
             "Jayson Tatum": {
@@ -360,6 +348,18 @@
                     "NBA All-Star Game MVP (2023)"
                 ]
             },
+            "LeBron James": {
+                achievements: [
+                    "4x NBA MVP (2009, 2010, 2012, 2013)",
+                    "4x NBA Finals MVP",
+                    "4x NBA Champion",
+                    "20x NBA All-Star",
+                    "19x All-NBA Team",
+                    "6x NBA All-Defensive Team",
+                    "NBA All-Star Game MVP (2006, 2008, 2018)",
+                    "Rookie of the Year (2004)"
+                ]
+            },
             "Anthony Davis": {
                 achievements: [
                     "NBA Champion (2020)",
@@ -367,6 +367,435 @@
                     "4x All-NBA Team",
                     "4x NBA All-Defensive Team",
                     "NBA All-Star Game MVP (2017)"
+                ]
+            },
+            "Devin Booker": {
+                achievements: [
+                    "4x NBA All-Star",
+                    "1x All-NBA Team"
+                ]
+            },
+            "Victor Wembanyama": {
+                achievements: [
+                    "Rookie of the Year (2024)",
+                    "NBA All-Defensive Team (2024)"
+                ]
+            },
+            "Anthony Edwards": {
+                achievements: [
+                    "2x NBA All-Star",
+                    "1x All-NBA Team"
+                ]
+            },
+            "Damian Lillard": {
+                achievements: [
+                    "8x NBA All-Star",
+                    "7x All-NBA Team",
+                    "NBA 75th Anniversary Team",
+                    "Rookie of the Year (2013)"
+                ]
+            },
+            "Donovan Mitchell": {
+                achievements: [
+                    "4x NBA All-Star",
+                    "1x All-NBA Team"
+                ]
+            },
+            "Tyrese Haliburton": {
+                achievements: [
+                    "2x NBA All-Star"
+                ]
+            },
+            "Zion Williamson": {
+                achievements: [
+                    "2x NBA All-Star"
+                ]
+            },
+            "Jamal Murray": {
+                achievements: [
+                    "NBA Champion (2023)"
+                ]
+            },
+            "De'Aaron Fox": {
+                achievements: [
+                    "2x NBA All-Star",
+                    "NBA Clutch Player of the Year (2023)"
+                ]
+            },
+            "Kyrie Irving": {
+                achievements: [
+                    "NBA Champion (2016)",
+                    "8x NBA All-Star",
+                    "3x All-NBA Team",
+                    "NBA All-Star Game MVP (2014)"
+                ]
+            },
+            "Jimmy Butler": {
+                achievements: [
+                    "6x NBA All-Star",
+                    "5x All-NBA Team",
+                    "5x NBA All-Defensive Team",
+                    "Most Improved Player (2015)"
+                ]
+            },
+            "Tyrese Maxey": {
+                achievements: [
+                    "1x NBA All-Star"
+                ]
+            },
+            "Paul George": {
+                achievements: [
+                    "9x NBA All-Star",
+                    "6x All-NBA Team",
+                    "4x NBA All-Defensive Team",
+                    "Most Improved Player (2013)"
+                ]
+            },
+            "Kawhi Leonard": {
+                achievements: [
+                    "2x NBA Champion",
+                    "2x NBA Finals MVP",
+                    "5x NBA All-Star",
+                    "5x All-NBA Team",
+                    "7x NBA All-Defensive Team",
+                    "2x Defensive Player of the Year"
+                ]
+            },
+            "LaMelo Ball": {
+                achievements: [
+                    "1x NBA All-Star",
+                    "Rookie of the Year (2021)"
+                ]
+            },
+            "Trae Young": {
+                achievements: [
+                    "2x NBA All-Star"
+                ]
+            },
+            "Bam Adebayo": {
+                achievements: [
+                    "3x NBA All-Star",
+                    "5x NBA All-Defensive Team"
+                ]
+            },
+            "Jaylen Brown": {
+                achievements: [
+                    "2x NBA All-Star",
+                    "1x All-NBA Team"
+                ]
+            },
+            "Jalen Brunson": {
+                achievements: [
+                    "1x NBA All-Star"
+                ]
+            },
+            "Domantas Sabonis": {
+                achievements: [
+                    "3x NBA All-Star",
+                    "2x All-NBA Team"
+                ]
+            },
+            "Pascal Siakam": {
+                achievements: [
+                    "NBA Champion (2019)",
+                    "2x NBA All-Star",
+                    "2x All-NBA Team",
+                    "Most Improved Player (2019)"
+                ]
+            },
+            "Karl-Anthony Towns": {
+                achievements: [
+                    "3x NBA All-Star",
+                    "2x All-NBA Team",
+                    "Rookie of the Year (2016)"
+                ]
+            },
+            "Dejounte Murray": {
+                achievements: [
+                    "1x NBA All-Star",
+                    "1x NBA All-Defensive Team"
+                ]
+            },
+            "Lauri Markkanen": {
+                achievements: [
+                    "1x NBA All-Star"
+                ]
+            },
+            "Chet Holmgren": {
+                achievements: [
+                    "NBA All-Rookie First Team (2024)"
+                ]
+            },
+            "Paolo Banchero": {
+                achievements: [
+                    "Rookie of the Year (2023)"
+                ]
+            },
+            "Julius Randle": {
+                achievements: [
+                    "3x NBA All-Star",
+                    "2x All-NBA Team",
+                    "Most Improved Player (2021)"
+                ]
+            },
+            "Scottie Barnes": {
+                achievements: [
+                    "Rookie of the Year (2022)"
+                ]
+            },
+            "Franz Wagner": {
+                achievements: [
+                    "NBA All-Rookie First Team (2022)"
+                ]
+            },
+            "Cade Cunningham": {
+                achievements: [
+                    "NBA All-Rookie First Team (2022)"
+                ]
+            },
+            "Jalen Williams": {
+                achievements: [
+                    "NBA All-Rookie First Team (2023)"
+                ]
+            },
+            "Alperen Sengun": {
+                achievements: [
+                    "NBA All-Rookie Second Team (2022)"
+                ]
+            },
+            "Darius Garland": {
+                achievements: [
+                    "1x NBA All-Star"
+                ]
+            },
+            "Evan Mobley": {
+                achievements: [
+                    "NBA All-Rookie First Team (2022)",
+                    "1x NBA All-Defensive Team"
+                ]
+            },
+            "Jrue Holiday": {
+                achievements: [
+                    "NBA Champion (2021)",
+                    "2x NBA All-Star",
+                    "2x NBA All-Defensive Team"
+                ]
+            },
+            "Kristaps Porzingis": {
+                achievements: [
+                    "1x NBA All-Star"
+                ]
+            },
+            "Rudy Gobert": {
+                achievements: [
+                    "3x Defensive Player of the Year",
+                    "3x NBA All-Star",
+                    "1x All-NBA Team",
+                    "6x NBA All-Defensive Team"
+                ]
+            },
+            "Mikal Bridges": {
+                achievements: [
+                    "1x NBA All-Defensive Team"
+                ]
+            },
+            "Fred VanVleet": {
+                achievements: [
+                    "NBA Champion (2019)",
+                    "1x NBA All-Star"
+                ]
+            },
+            "OG Anunoby": {
+                achievements: [
+                    "NBA Champion (2019)"
+                ]
+            },
+            "Aaron Gordon": {
+                achievements: [
+                    "NBA Champion (2023)"
+                ]
+            },
+            "Michael Porter Jr.": {
+                achievements: [
+                    "NBA Champion (2023)"
+                ]
+            },
+            "Derrick White": {
+                achievements: [
+                    "1x NBA All-Defensive Team"
+                ]
+            },
+            "Brook Lopez": {
+                achievements: [
+                    "1x NBA All-Star",
+                    "1x NBA All-Defensive Team"
+                ]
+            },
+            "Zaccharie Risacher": {
+                achievements: [
+                    "NBA Draft #1 Pick (2024)"
+                ]
+            },
+            "Jarrett Allen": {
+                achievements: [
+                    "1x NBA All-Star"
+                ]
+            },
+            "Myles Turner": {
+                achievements: [
+                    "1x NBA All-Defensive Team"
+                ]
+            },
+            "Alex Sarr": {
+                achievements: [
+                    "NBA Draft #2 Pick (2024)"
+                ]
+            },
+            "Jaden McDaniels": {
+                achievements: [
+                    "1x NBA All-Defensive Team"
+                ]
+            },
+            "Austin Reaves": {
+                achievements: [
+                    "NBA All-Rookie Second Team (2022)"
+                ]
+            },
+            "Reed Sheppard": {
+                achievements: [
+                    "NBA Draft #3 Pick (2024)"
+                ]
+            },
+            "Stephon Castle": {
+                achievements: [
+                    "NBA Draft #4 Pick (2024)"
+                ]
+            },
+            "Donovan Clingan": {
+                achievements: [
+                    "NBA Draft #7 Pick (2024)"
+                ]
+            },
+            "Matas Buzelis": {
+                achievements: [
+                    "NBA Draft #11 Pick (2024)"
+                ]
+            },
+            "Chris Paul": {
+                achievements: [
+                    "12x NBA All-Star",
+                    "11x All-NBA Team",
+                    "9x NBA All-Defensive Team",
+                    "Rookie of the Year (2006)"
+                ]
+            },
+            "James Harden": {
+                achievements: [
+                    "NBA MVP (2018)",
+                    "10x NBA All-Star",
+                    "7x All-NBA Team",
+                    "3x NBA Scoring Champion",
+                    "6th Man of the Year (2012)"
+                ]
+            },
+            "Russell Westbrook": {
+                achievements: [
+                    "NBA MVP (2017)",
+                    "9x NBA All-Star",
+                    "9x All-NBA Team",
+                    "2x NBA Scoring Champion",
+                    "3x NBA Assists Champion"
+                ]
+            },
+            "Klay Thompson": {
+                achievements: [
+                    "4x NBA Champion",
+                    "5x NBA All-Star",
+                    "2x All-NBA Team",
+                    "1x NBA All-Defensive Team"
+                ]
+            },
+            "Draymond Green": {
+                achievements: [
+                    "4x NBA Champion",
+                    "4x NBA All-Star",
+                    "2x All-NBA Team",
+                    "8x NBA All-Defensive Team",
+                    "Defensive Player of the Year (2017)"
+                ]
+            },
+            "Andrew Wiggins": {
+                achievements: [
+                    "1x NBA All-Star",
+                    "NBA Champion (2022)"
+                ]
+            },
+            "Zach LaVine": {
+                achievements: [
+                    "2x NBA All-Star"
+                ]
+            },
+            "DeMar DeRozan": {
+                achievements: [
+                    "6x NBA All-Star",
+                    "3x All-NBA Team"
+                ]
+            },
+            "Nikola Vucevic": {
+                achievements: [
+                    "2x NBA All-Star"
+                ]
+            },
+            "Tobias Harris": {
+                achievements: [
+                    "NBA All-Rookie Second Team (2012)"
+                ]
+            },
+            "Kyle Kuzma": {
+                achievements: [
+                    "NBA Champion (2020)",
+                    "NBA All-Rookie First Team (2018)"
+                ]
+            },
+            "Jordan Poole": {
+                achievements: [
+                    "NBA Champion (2022)"
+                ]
+            },
+            "CJ McCollum": {
+                achievements: [
+                    "Most Improved Player (2016)"
+                ]
+            },
+            "Brandon Ingram": {
+                achievements: [
+                    "1x NBA All-Star",
+                    "Most Improved Player (2020)"
+                ]
+            },
+            "Herb Jones": {
+                achievements: [
+                    "NBA All-Rookie Second Team (2022)",
+                    "1x NBA All-Defensive Team"
+                ]
+            },
+            "Jaren Jackson Jr.": {
+                achievements: [
+                    "1x NBA All-Star",
+                    "1x All-NBA Team",
+                    "1x NBA All-Defensive Team",
+                    "Defensive Player of the Year (2023)"
+                ]
+            },
+            "Desmond Bane": {
+                achievements: [
+                    "NBA All-Rookie Second Team (2021)"
+                ]
+            },
+            "Marcus Smart": {
+                achievements: [
+                    "Defensive Player of the Year (2022)",
+                    "3x NBA All-Defensive Team"
                 ]
             }
         };
