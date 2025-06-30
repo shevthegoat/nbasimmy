@@ -2069,26 +2069,39 @@
                     return;
                 }
 
-                // Calculate trade interest based on player values
+                // Calculate trade interest based on individual player ratings
                 const yourTotalValue = yourSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
                 const partnerTotalValue = partnerSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
-                const valueDifference = Math.abs(yourTotalValue - partnerTotalValue);
+                const valueDifference = yourTotalValue - partnerTotalValue;
                 
-                // Base interest starts at 70% (much higher base acceptance rate)
+                // Base interest starts at 70%
                 let interest = 70;
                 
-                // Adjust based on value balance (fair trades are much more likely to be accepted)
-                if (valueDifference < 15) {
-                    interest += 25; // Very fair trade - almost guaranteed
-                } else if (valueDifference < 25) {
-                    interest += 15; // Fair trade - very likely
-                } else if (valueDifference < 40) {
-                    interest += 5; // Somewhat fair trade - likely
-                } else if (valueDifference > 60) {
-                    interest -= 15; // Very unfair trade - less likely
+                // Asymmetric trade evaluation: AI is more likely to accept if you're getting scammed
+                if (valueDifference > 0) {
+                    // You're getting better players (AI is getting scammed)
+                    if (valueDifference > 30) {
+                        interest -= 40; // AI won't accept big scams against them
+                    } else if (valueDifference > 15) {
+                        interest -= 20; // AI is hesitant about medium scams
+                    } else {
+                        interest -= 5; // Small advantage for you, slight penalty
+                    }
+                } else if (valueDifference < 0) {
+                    // AI is getting better players (you're getting scammed)
+                    if (valueDifference < -30) {
+                        interest += 25; // AI loves big scams in their favor
+                    } else if (valueDifference < -15) {
+                        interest += 15; // AI likes medium scams in their favor
+                    } else {
+                        interest += 5; // Small advantage for AI, slight bonus
+                    }
+                } else {
+                    // Fair trade
+                    interest += 20; // Fair trades are very likely to be accepted
                 }
 
-                // Adjust based on number of players (simpler trades are preferred but not heavily penalized)
+                // Adjust based on number of players
                 const totalPlayers = yourSelectedPlayers.length + partnerSelectedPlayers.length;
                 if (totalPlayers <= 2) {
                     interest += 5; // Simple trade - slight bonus
@@ -2096,10 +2109,10 @@
                     interest -= 5; // Complex trade - slight penalty
                 }
 
-                // Add minimal randomness (much less than before)
+                // Add minimal randomness
                 interest += (Math.random() * 10) - 5;
                 
-                // Clamp between 20 and 100 (minimum 20% chance)
+                // Clamp between 20 and 100
                 interest = Math.max(20, Math.min(100, Math.round(interest)));
 
                 // Show trade interest modal
@@ -2109,9 +2122,13 @@
             function showTradeInterestModal(yourPlayers, partnerPlayers, interest) {
                 const modal = document.createElement('div');
                 modal.className = 'modal-overlay show';
+                
+                // Determine if it's a guaranteed deal (100% interest)
+                const isGuaranteedDeal = interest >= 100;
+                
                 modal.innerHTML = `
                     <div class="modal-content max-w-md">
-                        <h3 class="text-xl font-bold mb-4">Trade Proposal</h3>
+                        <h3 class="text-xl font-bold mb-4">${isGuaranteedDeal ? 'DEAL DONE!' : 'Trade Proposal'}</h3>
                         
                         <div class="mb-4">
                             <h4 class="font-semibold mb-2">Your Team Receives:</h4>
@@ -2129,6 +2146,7 @@
                             }
                         </div>
                         
+                        ${!isGuaranteedDeal ? `
                         <div class="mb-4">
                             <h4 class="font-semibold mb-2">Trade Interest: ${interest}%</h4>
                             <div class="w-full bg-gray-200 rounded-full h-4">
@@ -2141,32 +2159,59 @@
                                   'Moderate Interest - Good chance to accept'}
                             </div>
                         </div>
+                        ` : ''}
                         
                         <div class="flex space-x-2">
-                            <button onclick="executeTrade(${interest})" 
-                                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
-                                Execute Trade
-                            </button>
-                            <button onclick="closeTradeModal()" 
-                                    class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
-                                Cancel
-                            </button>
+                            ${isGuaranteedDeal ? `
+                                <button onclick="executeGuaranteedTrade()" 
+                                        class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                                    OK
+                                </button>
+                            ` : `
+                                <button onclick="executeTrade(${interest})" 
+                                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                                    Execute Trade
+                                </button>
+                                <button onclick="closeTradeModal()" 
+                                        class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                                    Cancel
+                                </button>
+                            `}
                         </div>
                     </div>
                 `;
                 
                 document.body.appendChild(modal);
+                
+                // Store the trade data for execution
+                modal.dataset.yourPlayers = JSON.stringify(yourPlayers);
+                modal.dataset.partnerPlayers = JSON.stringify(partnerPlayers);
             }
 
             // Global functions for trade modal
             window.executeTrade = function(interest) {
+                const modal = document.querySelector('.modal-overlay.show');
+                const yourPlayers = JSON.parse(modal.dataset.yourPlayers || '[]');
+                const partnerPlayers = JSON.parse(modal.dataset.partnerPlayers || '[]');
+                
                 const success = Math.random() * 100 < interest;
                 if (success) {
+                    // Execute the trade
+                    executeTradeLogic(yourPlayers, partnerPlayers);
                     showModal('Trade Successful!', 'The trade has been completed successfully.');
-                    // Here you would implement the actual player swapping logic
                 } else {
                     showModal('Trade Rejected', 'The other team rejected your trade proposal.');
                 }
+                closeTradeModal();
+            };
+
+            window.executeGuaranteedTrade = function() {
+                const modal = document.querySelector('.modal-overlay.show');
+                const yourPlayers = JSON.parse(modal.dataset.yourPlayers || '[]');
+                const partnerPlayers = JSON.parse(modal.dataset.partnerPlayers || '[]');
+                
+                // Execute the trade immediately
+                executeTradeLogic(yourPlayers, partnerPlayers);
                 closeTradeModal();
             };
 
@@ -2176,6 +2221,28 @@
                     modal.remove();
                 }
             };
+
+            function executeTradeLogic(yourPlayers, partnerPlayers) {
+                // Remove your players from your team
+                yourPlayers.forEach(player => {
+                    yourTeam = yourTeam.filter(p => p.name !== player.name);
+                });
+
+                // Add partner players to your team
+                partnerPlayers.forEach(player => {
+                    yourTeam.push(player);
+                });
+
+                // Update the UI
+                managementCapSpace.textContent = currentCapSpace.toFixed(1);
+                rosterSpots.textContent = yourTeam.length;
+                
+                const teamRatingData = getTeamRatingWithChemistry(yourTeam);
+                teamRating.textContent = Math.round(teamRatingData.totalRating);
+                
+                renderCurrentRoster();
+                renderTradeYourTeam();
+            }
 
             function startSeason() {
                 // Navigate back to game container and show simulate season results
