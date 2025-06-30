@@ -2074,31 +2074,33 @@
                 const partnerTotalValue = partnerSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
                 const valueDifference = Math.abs(yourTotalValue - partnerTotalValue);
                 
-                // Base interest starts at 50%
-                let interest = 50;
+                // Base interest starts at 70% (much higher base acceptance rate)
+                let interest = 70;
                 
-                // Adjust based on value balance (fair trades are more interesting)
-                if (valueDifference < 10) {
-                    interest += 20; // Very fair trade
-                } else if (valueDifference < 20) {
-                    interest += 10; // Fair trade
-                } else if (valueDifference > 30) {
-                    interest -= 20; // Unfair trade
+                // Adjust based on value balance (fair trades are much more likely to be accepted)
+                if (valueDifference < 15) {
+                    interest += 25; // Very fair trade - almost guaranteed
+                } else if (valueDifference < 25) {
+                    interest += 15; // Fair trade - very likely
+                } else if (valueDifference < 40) {
+                    interest += 5; // Somewhat fair trade - likely
+                } else if (valueDifference > 60) {
+                    interest -= 15; // Very unfair trade - less likely
                 }
 
-                // Adjust based on number of players (simpler trades are preferred)
+                // Adjust based on number of players (simpler trades are preferred but not heavily penalized)
                 const totalPlayers = yourSelectedPlayers.length + partnerSelectedPlayers.length;
                 if (totalPlayers <= 2) {
-                    interest += 10; // Simple trade
-                } else if (totalPlayers >= 4) {
-                    interest -= 10; // Complex trade
+                    interest += 5; // Simple trade - slight bonus
+                } else if (totalPlayers >= 6) {
+                    interest -= 5; // Complex trade - slight penalty
                 }
 
-                // Add some randomness
-                interest += (Math.random() * 20) - 10;
+                // Add minimal randomness (much less than before)
+                interest += (Math.random() * 10) - 5;
                 
-                // Clamp between 0 and 100
-                interest = Math.max(0, Math.min(100, Math.round(interest)));
+                // Clamp between 20 and 100 (minimum 20% chance)
+                interest = Math.max(20, Math.min(100, Math.round(interest)));
 
                 // Show trade interest modal
                 showTradeInterestModal(yourSelectedPlayers, partnerSelectedPlayers, interest);
@@ -2130,13 +2132,13 @@
                         <div class="mb-4">
                             <h4 class="font-semibold mb-2">Trade Interest: ${interest}%</h4>
                             <div class="w-full bg-gray-200 rounded-full h-4">
-                                <div class="h-4 rounded-full transition-all duration-500 ${interest >= 70 ? 'bg-green-500' : interest >= 40 ? 'bg-yellow-500' : 'bg-red-500'}" 
+                                <div class="h-4 rounded-full transition-all duration-500 ${interest >= 85 ? 'bg-green-500' : interest >= 60 ? 'bg-yellow-500' : 'bg-orange-500'}" 
                                      style="width: ${interest}%"></div>
                             </div>
                             <div class="text-sm text-gray-600 mt-1">
-                                ${interest >= 70 ? 'High Interest - Likely to accept' : 
-                                  interest >= 40 ? 'Moderate Interest - Might accept' : 
-                                  'Low Interest - Unlikely to accept'}
+                                ${interest >= 85 ? 'Very High Interest - Very likely to accept' : 
+                                  interest >= 60 ? 'High Interest - Likely to accept' : 
+                                  'Moderate Interest - Good chance to accept'}
                             </div>
                         </div>
                         
