@@ -2158,6 +2158,12 @@
                                   interest >= 60 ? 'High Interest - Likely to accept' : 
                                   'Moderate Interest - Good chance to accept'}
                             </div>
+                            <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p class="text-sm text-yellow-800">
+                                    <strong>Note:</strong> Trades can only be executed when interest reaches 100%. 
+                                    Try adjusting your trade to make it more favorable for the other team.
+                                </p>
+                            </div>
                         </div>
                         ` : ''}
                         
@@ -2165,13 +2171,9 @@
                             ${isGuaranteedDeal ? `
                                 <button onclick="executeGuaranteedTrade()" 
                                         class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
-                                    OK
+                                    Confirm Trade
                                 </button>
                             ` : `
-                                <button onclick="executeTrade(${interest})" 
-                                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
-                                    Execute Trade
-                                </button>
                                 <button onclick="closeTradeModal()" 
                                         class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
                                     Cancel
@@ -2248,6 +2250,9 @@
                 // Navigate back to game container and show simulate season results
                 teamManagementPage.classList.add('hidden');
                 gameContainer.classList.remove('hidden');
+                
+                // Update the game container with current roster
+                renderPlayers();
                 
                 const teamRatingData = getTeamRatingWithChemistry(yourTeam);
                 const botTotalRatings = botTeams.map(team => {
