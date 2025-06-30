@@ -2029,10 +2029,151 @@
                 gameContainer.classList.remove('hidden');
             });
 
+            // Propose trade button
+            proposeTradeBtn.addEventListener('click', () => {
+                proposeTrade();
+            });
+
             // Main start season button
             startSeasonBtnMain.addEventListener('click', () => {
-                startSeason();
+                if (yourTeam.length === 5) {
+                    startSeason();
+                } else {
+                    showModal('Incomplete Team', 'You need to draft 5 players before you can start the season.');
+                }
             });
+
+            function proposeTrade() {
+                // Get selected players from your team
+                const yourSelectedPlayers = [];
+                document.querySelectorAll('.trade-checkbox-your:checked').forEach(checkbox => {
+                    const playerName = checkbox.id.replace('trade-your-', '').replace(/-/g, ' ');
+                    const player = yourTeam.find(p => p.name === playerName);
+                    if (player) {
+                        yourSelectedPlayers.push(player);
+                    }
+                });
+
+                // Get selected players from partner team
+                const partnerSelectedPlayers = [];
+                document.querySelectorAll('.trade-checkbox-partner:checked').forEach(checkbox => {
+                    const playerName = checkbox.id.replace('trade-partner-', '').replace(/-/g, ' ');
+                    const player = players.find(p => p.name === playerName);
+                    if (player) {
+                        partnerSelectedPlayers.push(player);
+                    }
+                });
+
+                if (yourSelectedPlayers.length === 0 && partnerSelectedPlayers.length === 0) {
+                    showModal('No Players Selected', 'Please select at least one player from either team to propose a trade.');
+                    return;
+                }
+
+                // Calculate trade interest based on player values
+                const yourTotalValue = yourSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
+                const partnerTotalValue = partnerSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
+                const valueDifference = Math.abs(yourTotalValue - partnerTotalValue);
+                
+                // Base interest starts at 50%
+                let interest = 50;
+                
+                // Adjust based on value balance (fair trades are more interesting)
+                if (valueDifference < 10) {
+                    interest += 20; // Very fair trade
+                } else if (valueDifference < 20) {
+                    interest += 10; // Fair trade
+                } else if (valueDifference > 30) {
+                    interest -= 20; // Unfair trade
+                }
+
+                // Adjust based on number of players (simpler trades are preferred)
+                const totalPlayers = yourSelectedPlayers.length + partnerSelectedPlayers.length;
+                if (totalPlayers <= 2) {
+                    interest += 10; // Simple trade
+                } else if (totalPlayers >= 4) {
+                    interest -= 10; // Complex trade
+                }
+
+                // Add some randomness
+                interest += (Math.random() * 20) - 10;
+                
+                // Clamp between 0 and 100
+                interest = Math.max(0, Math.min(100, Math.round(interest)));
+
+                // Show trade interest modal
+                showTradeInterestModal(yourSelectedPlayers, partnerSelectedPlayers, interest);
+            }
+
+            function showTradeInterestModal(yourPlayers, partnerPlayers, interest) {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay show';
+                modal.innerHTML = `
+                    <div class="modal-content max-w-md">
+                        <h3 class="text-xl font-bold mb-4">Trade Proposal</h3>
+                        
+                        <div class="mb-4">
+                            <h4 class="font-semibold mb-2">Your Team Receives:</h4>
+                            ${partnerPlayers.length > 0 ? 
+                                partnerPlayers.map(p => `<div class="text-sm text-gray-600">• ${p.name} (${p.position}) - Rating: ${p.rating}</div>`).join('') :
+                                '<div class="text-sm text-gray-500">No players</div>'
+                            }
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h4 class="font-semibold mb-2">Partner Team Receives:</h4>
+                            ${yourPlayers.length > 0 ? 
+                                yourPlayers.map(p => `<div class="text-sm text-gray-600">• ${p.name} (${p.position}) - Rating: ${p.rating}</div>`).join('') :
+                                '<div class="text-sm text-gray-500">No players</div>'
+                            }
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h4 class="font-semibold mb-2">Trade Interest: ${interest}%</h4>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="h-4 rounded-full transition-all duration-500 ${interest >= 70 ? 'bg-green-500' : interest >= 40 ? 'bg-yellow-500' : 'bg-red-500'}" 
+                                     style="width: ${interest}%"></div>
+                            </div>
+                            <div class="text-sm text-gray-600 mt-1">
+                                ${interest >= 70 ? 'High Interest - Likely to accept' : 
+                                  interest >= 40 ? 'Moderate Interest - Might accept' : 
+                                  'Low Interest - Unlikely to accept'}
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <button onclick="executeTrade(${interest})" 
+                                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                                Execute Trade
+                            </button>
+                            <button onclick="closeTradeModal()" 
+                                    class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+            }
+
+            // Global functions for trade modal
+            window.executeTrade = function(interest) {
+                const success = Math.random() * 100 < interest;
+                if (success) {
+                    showModal('Trade Successful!', 'The trade has been completed successfully.');
+                    // Here you would implement the actual player swapping logic
+                } else {
+                    showModal('Trade Rejected', 'The other team rejected your trade proposal.');
+                }
+                closeTradeModal();
+            };
+
+            window.closeTradeModal = function() {
+                const modal = document.querySelector('.modal-overlay.show');
+                if (modal) {
+                    modal.remove();
+                }
+            };
 
             function startSeason() {
                 // Navigate back to game container and show simulate season results
