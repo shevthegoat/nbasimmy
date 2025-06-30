@@ -2070,50 +2070,45 @@
                 }
 
                 // Calculate trade interest based on individual player ratings
-                const yourTotalValue = yourSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
-                const partnerTotalValue = partnerSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
-                const valueDifference = yourTotalValue - partnerTotalValue;
+                let interest = 0;
                 
-                // Base interest starts at 70%
-                let interest = 70;
-                
-                // Asymmetric trade evaluation: AI is more likely to accept if you're getting scammed
-                if (valueDifference > 0) {
-                    // You're getting better players (AI is getting scammed)
-                    if (valueDifference > 30) {
-                        interest -= 40; // AI won't accept big scams against them
-                    } else if (valueDifference > 15) {
-                        interest -= 20; // AI is hesitant about medium scams
+                // Handle different trade scenarios
+                if (yourSelectedPlayers.length === 1 && partnerSelectedPlayers.length === 1) {
+                    // 1-for-1 trade
+                    const yourPlayerRating = yourSelectedPlayers[0].rating;
+                    const partnerPlayerRating = partnerSelectedPlayers[0].rating;
+                    const ratingDifference = yourPlayerRating - partnerPlayerRating;
+                    
+                    if (Math.abs(ratingDifference) <= 5) {
+                        // Fair trade (within 5 rating points)
+                        interest = 100;
+                    } else if (ratingDifference > 0) {
+                        // You're getting a better player (AI getting scammed)
+                        interest = 0; // AI won't accept
                     } else {
-                        interest -= 5; // Small advantage for you, slight penalty
-                    }
-                } else if (valueDifference < 0) {
-                    // AI is getting better players (you're getting scammed)
-                    if (valueDifference < -30) {
-                        interest += 25; // AI loves big scams in their favor
-                    } else if (valueDifference < -15) {
-                        interest += 15; // AI likes medium scams in their favor
-                    } else {
-                        interest += 5; // Small advantage for AI, slight bonus
+                        // AI is getting a better player (you getting scammed)
+                        interest = 100; // AI accepts
                     }
                 } else {
-                    // Fair trade
-                    interest += 20; // Fair trades are very likely to be accepted
+                    // Multi-player trade - evaluate each player individually
+                    const yourTotalRating = yourSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
+                    const partnerTotalRating = partnerSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
+                    const totalRatingDifference = yourTotalRating - partnerTotalRating;
+                    
+                    if (Math.abs(totalRatingDifference) <= 5) {
+                        // Fair trade (within 5 total rating points)
+                        interest = 100;
+                    } else if (totalRatingDifference > 0) {
+                        // You're getting better players (AI getting scammed)
+                        interest = 0; // AI won't accept
+                    } else {
+                        // AI is getting better players (you getting scammed)
+                        interest = 100; // AI accepts
+                    }
                 }
 
-                // Adjust based on number of players
-                const totalPlayers = yourSelectedPlayers.length + partnerSelectedPlayers.length;
-                if (totalPlayers <= 2) {
-                    interest += 5; // Simple trade - slight bonus
-                } else if (totalPlayers >= 6) {
-                    interest -= 5; // Complex trade - slight penalty
-                }
-
-                // Add minimal randomness
-                interest += (Math.random() * 10) - 5;
-                
-                // Clamp between 20 and 100
-                interest = Math.max(20, Math.min(100, Math.round(interest)));
+                // No randomness or adjustments - it's either 0% or 100%
+                interest = Math.round(interest);
 
                 // Show trade interest modal
                 showTradeInterestModal(yourSelectedPlayers, partnerSelectedPlayers, interest);
