@@ -254,7 +254,7 @@
                 <div id="bot-drafted-players" class="bg-card border rounded-lg p-4 h-48 overflow-y-auto shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
             <div id="controls" class="text-center mt-8 space-x-4">
-                <button id="sim-season-btn" class="nba-gradient hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg text-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg">Simulate Season</button>
+                <button id="finish-btn" class="nba-gradient hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg text-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg">Finish</button>
                 <button id="sim-playoffs-btn" class="nba-gradient hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg text-lg transition duration-300 disabled:bg-muted disabled:text-muted-foreground shadow-md hover:shadow-lg" style="display: none;">Simulate Playoffs</button>
                 <button id="reset-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-lg transition duration-300 shadow-md hover:shadow-lg" style="display: none;">Draft Again</button>
             </div>
@@ -262,6 +262,120 @@
                 <h2 class="text-2xl font-semibold mb-4 nba-gradient-text">Results</h2>
                 <div id="results-display" class="bg-card border rounded-lg p-4 min-h-[100px] text-lg shadow-sm">
                     Draft your 5-player team to begin!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Management Page -->
+    <div id="team-management-page" class="hidden min-h-screen bg-gray-50 py-8">
+        <div class="container mx-auto px-4">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold nba-gradient-text mb-2">Team Management</h1>
+                <p class="text-xl text-gray-600">Manage your <span id="management-team-name" class="font-bold text-primary"></span> roster</p>
+                <div class="mt-4">
+                    <button id="back-to-draft-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">← Back to Draft</button>
+                </div>
+            </div>
+
+            <!-- Team Overview -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-900">Current Roster</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-sm text-gray-600">Cap Space</p>
+                        <p class="text-2xl font-bold text-green-600">$<span id="management-cap-space">145</span>M</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-sm text-gray-600">Roster Spots</p>
+                        <p class="text-2xl font-bold text-blue-600"><span id="roster-spots">5</span>/15</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-sm text-gray-600">Team Rating</p>
+                        <p class="text-2xl font-bold text-purple-600"><span id="team-rating">0</span></p>
+                    </div>
+                </div>
+                <div id="current-roster-display" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"></div>
+            </div>
+
+            <!-- Management Tabs -->
+            <div class="bg-white rounded-lg shadow-md mb-8">
+                <div class="border-b border-gray-200">
+                    <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                        <button id="free-agents-tab" class="tab-button border-b-2 border-blue-500 text-blue-600 py-4 px-1 text-sm font-medium">
+                            Free Agents
+                        </button>
+                        <button id="trades-tab" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium">
+                            Trades
+                        </button>
+                        <button id="waivers-tab" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium">
+                            Waivers
+                        </button>
+                        <button id="simulate-tab" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium">
+                            Simulate Season
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Free Agents Tab -->
+                <div id="free-agents-content" class="tab-content p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold">Available Free Agents</h3>
+                        <div class="flex space-x-2">
+                            <input type="text" id="fa-search" placeholder="Search players..." class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select id="fa-position-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Positions</option>
+                                <option value="PG">Point Guard</option>
+                                <option value="SG">Shooting Guard</option>
+                                <option value="SF">Small Forward</option>
+                                <option value="PF">Power Forward</option>
+                                <option value="C">Center</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="free-agents-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+                </div>
+
+                <!-- Trades Tab -->
+                <div id="trades-content" class="tab-content hidden p-6">
+                    <h3 class="text-xl font-semibold mb-4">Trade Center</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold mb-3">Your Team</h4>
+                            <div id="trade-your-team" class="space-y-2"></div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold mb-3">Trade Partner</h4>
+                            <select id="trade-partner-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3">
+                                <option value="">Select a team...</option>
+                            </select>
+                            <div id="trade-partner-team" class="space-y-2"></div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-6">
+                        <button id="propose-trade-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Propose Trade
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Waivers Tab -->
+                <div id="waivers-content" class="tab-content hidden p-6">
+                    <h3 class="text-xl font-semibold mb-4">Waiver Wire</h3>
+                    <p class="text-gray-600 mb-4">Players recently released by other teams are available here.</p>
+                    <div id="waivers-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+                </div>
+
+                <!-- Simulate Season Tab -->
+                <div id="simulate-content" class="tab-content hidden p-6">
+                    <h3 class="text-xl font-semibold mb-4">Season Simulation</h3>
+                    <div class="text-center">
+                        <p class="text-gray-600 mb-6">Ready to start the season with your current roster?</p>
+                        <button id="start-season-btn" class="nba-gradient hover:opacity-90 text-white font-bold py-3 px-8 rounded-lg text-xl transition duration-300">
+                            Start Season
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1668,7 +1782,7 @@
 
             const playerPoolEl = document.getElementById('player-pool');
             const yourTeamEl = document.getElementById('your-team');
-            const simSeasonBtn = document.getElementById('sim-season-btn');
+            const finishBtn = document.getElementById('finish-btn');
             const simPlayoffsBtn = document.getElementById('sim-playoffs-btn');
             const resetBtn = document.getElementById('reset-btn');
             const resultsDisplay = document.getElementById('results-display');
@@ -1691,6 +1805,32 @@
             const modalTitle = document.getElementById('modal-title');
             const modalMessage = document.getElementById('modal-message');
             const modalCloseBtn = document.getElementById('modal-close-btn');
+            
+            // Team management page elements
+            const teamManagementPage = document.getElementById('team-management-page');
+            const managementTeamName = document.getElementById('management-team-name');
+            const managementCapSpace = document.getElementById('management-cap-space');
+            const rosterSpots = document.getElementById('roster-spots');
+            const teamRating = document.getElementById('team-rating');
+            const currentRosterDisplay = document.getElementById('current-roster-display');
+            const backToDraftBtn = document.getElementById('back-to-draft-btn');
+            const freeAgentsTab = document.getElementById('free-agents-tab');
+            const tradesTab = document.getElementById('trades-tab');
+            const waiversTab = document.getElementById('waivers-tab');
+            const simulateTab = document.getElementById('simulate-tab');
+            const freeAgentsContent = document.getElementById('free-agents-content');
+            const tradesContent = document.getElementById('trades-content');
+            const waiversContent = document.getElementById('waivers-content');
+            const simulateContent = document.getElementById('simulate-content');
+            const freeAgentsList = document.getElementById('free-agents-list');
+            const faSearch = document.getElementById('fa-search');
+            const faPositionFilter = document.getElementById('fa-position-filter');
+            const tradeYourTeam = document.getElementById('trade-your-team');
+            const tradePartnerSelect = document.getElementById('trade-partner-select');
+            const tradePartnerTeam = document.getElementById('trade-partner-team');
+            const proposeTradeBtn = document.getElementById('propose-trade-btn');
+            const waiversList = document.getElementById('waivers-list');
+            const startSeasonBtn = document.getElementById('start-season-btn');
 
             let yourTeam = [];
             let botTeams = [];
@@ -1701,6 +1841,221 @@
             let currentSeries = { userWins: 0, oppWins: 0, opponentRating: 0, opponentTeam: null };
 
             modalCloseBtn.addEventListener('click', () => hideModal());
+
+            // Team Management Functions
+            function renderCurrentRoster() {
+                currentRosterDisplay.innerHTML = '';
+                yourTeam.forEach(player => {
+                    const playerCard = document.createElement('div');
+                    playerCard.className = 'bg-white border rounded-lg p-4 shadow-sm';
+                    playerCard.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <img src="${playerImageMap[player.name] || 'https://placehold.co/60x60/333333/ffffff?text=?'}" 
+                                 alt="${player.name}" 
+                                 class="w-12 h-12 rounded-full object-contain">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-sm">${player.name}</h4>
+                                <p class="text-xs text-gray-600">${player.position} • $${player.salary.toFixed(1)}M</p>
+                            </div>
+                            <button onclick="removePlayerFromRoster('${player.name}')" 
+                                    class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                Remove
+                            </button>
+                        </div>
+                    `;
+                    currentRosterDisplay.appendChild(playerCard);
+                });
+            }
+
+            function initializeFreeAgents() {
+                // Create a list of available free agents (players not on any team)
+                const allPlayers = [...players];
+                const draftedPlayers = [...yourTeam, ...botTeams.flat()];
+                const freeAgents = allPlayers.filter(player => 
+                    !draftedPlayers.some(drafted => drafted.name === player.name)
+                );
+                
+                renderFreeAgents(freeAgents);
+            }
+
+            function renderFreeAgents(freeAgents) {
+                freeAgentsList.innerHTML = '';
+                freeAgents.forEach(player => {
+                    const playerCard = document.createElement('div');
+                    playerCard.className = 'bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow';
+                    playerCard.innerHTML = `
+                        <div class="flex items-center space-x-3 mb-3">
+                            <img src="${playerImageMap[player.name] || 'https://placehold.co/60x60/333333/ffffff?text=?'}" 
+                                 alt="${player.name}" 
+                                 class="w-12 h-12 rounded-full object-contain">
+                            <div class="flex-1">
+                                <h4 class="font-semibold">${player.name}</h4>
+                                <p class="text-sm text-gray-600">${player.position}</p>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-600 mb-3">
+                            <p>Salary: $${player.salary.toFixed(1)}M</p>
+                            <p>Rating: ${player.rating}</p>
+                        </div>
+                        <button onclick="signFreeAgent('${player.name}')" 
+                                class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 rounded-lg transition duration-300">
+                            Sign Player
+                        </button>
+                    `;
+                    freeAgentsList.appendChild(playerCard);
+                });
+            }
+
+            function initializeTradePartners() {
+                tradePartnerSelect.innerHTML = '<option value="">Select a team...</option>';
+                nbaTeams.forEach(team => {
+                    if (team.name !== selectedTeamName) {
+                        const option = document.createElement('option');
+                        option.value = team.name;
+                        option.textContent = team.name;
+                        tradePartnerSelect.appendChild(option);
+                    }
+                });
+                
+                renderTradeYourTeam();
+            }
+
+            function renderTradeYourTeam() {
+                tradeYourTeam.innerHTML = '';
+                yourTeam.forEach(player => {
+                    const playerItem = document.createElement('div');
+                    playerItem.className = 'flex items-center justify-between p-2 bg-white rounded border';
+                    playerItem.innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="trade-${player.name.replace(/\s+/g, '-')}" class="trade-checkbox">
+                            <span class="text-sm">${player.name} (${player.position})</span>
+                        </div>
+                    `;
+                    tradeYourTeam.appendChild(playerItem);
+                });
+            }
+
+            // Global functions for team management
+            window.removePlayerFromRoster = function(playerName) {
+                const player = yourTeam.find(p => p.name === playerName);
+                if (player) {
+                    yourTeam = yourTeam.filter(p => p.name !== playerName);
+                    currentCapSpace += player.salary;
+                    managementCapSpace.textContent = currentCapSpace.toFixed(1);
+                    rosterSpots.textContent = yourTeam.length;
+                    
+                    const teamRatingData = getTeamRatingWithChemistry(yourTeam);
+                    teamRating.textContent = Math.round(teamRatingData.totalRating);
+                    
+                    renderCurrentRoster();
+                    renderTradeYourTeam();
+                }
+            };
+
+            window.signFreeAgent = function(playerName) {
+                const player = players.find(p => p.name === playerName);
+                if (player && currentCapSpace >= player.salary && yourTeam.length < 15) {
+                    yourTeam.push(player);
+                    currentCapSpace -= player.salary;
+                    managementCapSpace.textContent = currentCapSpace.toFixed(1);
+                    rosterSpots.textContent = yourTeam.length;
+                    
+                    const teamRatingData = getTeamRatingWithChemistry(yourTeam);
+                    teamRating.textContent = Math.round(teamRatingData.totalRating);
+                    
+                    renderCurrentRoster();
+                    renderTradeYourTeam();
+                    initializeFreeAgents(); // Refresh free agents list
+                } else if (currentCapSpace < player.salary) {
+                    showModal('Insufficient Cap Space', `You need $${(player.salary - currentCapSpace).toFixed(1)}M more cap space to sign ${playerName}.`);
+                } else if (yourTeam.length >= 15) {
+                    showModal('Roster Full', 'Your roster is at maximum capacity (15 players).');
+                }
+            };
+
+            // Tab switching functionality
+            function switchTab(activeTab, activeContent) {
+                // Hide all tab contents
+                [freeAgentsContent, tradesContent, waiversContent, simulateContent].forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                // Remove active state from all tabs
+                [freeAgentsTab, tradesTab, waiversTab, simulateTab].forEach(tab => {
+                    tab.classList.remove('border-blue-500', 'text-blue-600');
+                    tab.classList.add('border-transparent', 'text-gray-500');
+                });
+                
+                // Show active content and highlight active tab
+                activeContent.classList.remove('hidden');
+                activeTab.classList.remove('border-transparent', 'text-gray-500');
+                activeTab.classList.add('border-blue-500', 'text-blue-600');
+            }
+
+            // Tab event listeners
+            freeAgentsTab.addEventListener('click', () => switchTab(freeAgentsTab, freeAgentsContent));
+            tradesTab.addEventListener('click', () => switchTab(tradesTab, tradesContent));
+            waiversTab.addEventListener('click', () => switchTab(waiversTab, waiversContent));
+            simulateTab.addEventListener('click', () => switchTab(simulateTab, simulateContent));
+
+            // Back to draft button
+            backToDraftBtn.addEventListener('click', () => {
+                teamManagementPage.classList.add('hidden');
+                gameContainer.classList.remove('hidden');
+            });
+
+            // Start season button
+            startSeasonBtn.addEventListener('click', () => {
+                // Navigate back to game container and show simulate season results
+                teamManagementPage.classList.add('hidden');
+                gameContainer.classList.remove('hidden');
+                
+                const teamRatingData = getTeamRatingWithChemistry(yourTeam);
+                const botTotalRatings = botTeams.map(team => {
+                    const botTeamData = getTeamRatingWithChemistry(team);
+                    return botTeamData.totalRating;
+                });
+                const avgBotRating = botTotalRatings.reduce((sum, rating) => sum + rating, 0) / botTeams.length;
+                const ratingDiff = teamRatingData.totalRating - avgBotRating;
+                const winProb = 0.5 + 0.01 * ratingDiff;
+                const clampedWinProb = Math.max(0, Math.min(1, winProb));
+                const expectedWins = 82 * clampedWinProb;
+                const wins = Math.round(expectedWins + (Math.random() * 10 - 5));
+                const finalWins = Math.max(0, Math.min(82, wins));
+                const losses = 82 - finalWins;
+
+                let chemistryInfo = '';
+                if (teamRatingData.chemistryBonus > 0) {
+                    chemistryInfo = `
+                        <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="font-semibold text-green-800 mb-2">🏀 Team Chemistry Bonus: +${teamRatingData.chemistryBonus} Rating</p>
+                            <p class="text-sm text-green-700 mb-2">Chemistry Pairs:</p>
+                            <ul class="text-sm text-green-700 list-disc list-inside">
+                                ${teamRatingData.chemistryPairs.map(pair => `<li>${pair}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                resultsDisplay.innerHTML = `
+                    <p class="text-xl font-bold text-green-600">Regular Season Finished!</p>
+                    <p>Your team's record: <span class="text-green-600">${finalWins}</span> - <span class="text-red-600">${losses}</span></p>
+                    <p class="text-sm text-gray-600 mt-2">Base Team Rating: ${teamRatingData.baseRating} | Total Rating with Chemistry: ${teamRatingData.totalRating}</p>
+                    ${chemistryInfo}
+                `;
+                if (finalWins >= PLAYOFF_WIN_THRESHOLD) {
+                    resultsDisplay.innerHTML += '<p class="text-black mt-2 font-semibold">Congratulations, you made the playoffs!</p>';
+                    simPlayoffsBtn.style.display = 'inline-block';
+                    currentPlayoffRound = 1;
+                    simPlayoffsBtn.textContent = 'Simulate First Round';
+                    resetBtn.style.display = 'none';
+                } else {
+                    resultsDisplay.innerHTML += '<p class="text-black mt-2 font-semibold">You missed the playoffs. Better luck next year!</p>';
+                    resetBtn.style.display = 'inline-block';
+                }
+                finishBtn.style.display = 'none';
+                finishBtn.dataset.regularSeasonWins = finalWins;
+            });
 
             function showModal(title, message) {
                 modalTitle.textContent = title;
@@ -2392,52 +2747,27 @@
                 resultsDisplay.textContent = `Removed ${player.name} from your team. Remaining Cap: $${currentCapSpace.toFixed(1)}M.`;
             }
 
-            simSeasonBtn.addEventListener('click', () => {
+            finishBtn.addEventListener('click', () => {
+                // Navigate to team management page
+                gameContainer.classList.add('hidden');
+                teamManagementPage.classList.remove('hidden');
+                
+                // Update management page with current team info
+                managementTeamName.textContent = selectedTeamName;
+                managementCapSpace.textContent = currentCapSpace.toFixed(1);
+                rosterSpots.textContent = yourTeam.length;
+                
                 const teamRatingData = getTeamRatingWithChemistry(yourTeam);
-                const botTotalRatings = botTeams.map(team => {
-                    const botTeamData = getTeamRatingWithChemistry(team);
-                    return botTeamData.totalRating;
-                });
-                const avgBotRating = botTotalRatings.reduce((sum, rating) => sum + rating, 0) / botTeams.length;
-                const ratingDiff = teamRatingData.totalRating - avgBotRating;
-                const winProb = 0.5 + 0.01 * ratingDiff;
-                const clampedWinProb = Math.max(0, Math.min(1, winProb));
-                const expectedWins = 82 * clampedWinProb;
-                const wins = Math.round(expectedWins + (Math.random() * 10 - 5));
-                const finalWins = Math.max(0, Math.min(82, wins));
-                const losses = 82 - finalWins;
-
-                let chemistryInfo = '';
-                if (teamRatingData.chemistryBonus > 0) {
-                    chemistryInfo = `
-                        <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <p class="font-semibold text-green-800 mb-2">🏀 Team Chemistry Bonus: +${teamRatingData.chemistryBonus} Rating</p>
-                            <p class="text-sm text-green-700 mb-2">Chemistry Pairs:</p>
-                            <ul class="text-sm text-green-700 list-disc list-inside">
-                                ${teamRatingData.chemistryPairs.map(pair => `<li>${pair}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                resultsDisplay.innerHTML = `
-                    <p class="text-xl font-bold text-green-600">Regular Season Finished!</p>
-                    <p>Your team's record: <span class="text-green-600">${finalWins}</span> - <span class="text-red-600">${losses}</span></p>
-                    <p class="text-sm text-gray-600 mt-2">Base Team Rating: ${teamRatingData.baseRating} | Total Rating with Chemistry: ${teamRatingData.totalRating}</p>
-                    ${chemistryInfo}
-                `;
-                if (finalWins >= PLAYOFF_WIN_THRESHOLD) {
-                    resultsDisplay.innerHTML += '<p class="text-black mt-2 font-semibold">Congratulations, you made the playoffs!</p>';
-                    simPlayoffsBtn.style.display = 'inline-block';
-                    currentPlayoffRound = 1;
-                    simPlayoffsBtn.textContent = 'Simulate First Round';
-                    resetBtn.style.display = 'none'; // Hide "Draft Again" when making playoffs
-                } else {
-                    resultsDisplay.innerHTML += '<p class="text-black mt-2 font-semibold">You missed the playoffs. Better luck next year!</p>';
-                    resetBtn.style.display = 'inline-block'; // Show "Draft Again" when missing playoffs
-                }
-                simSeasonBtn.style.display = 'none';
-                simSeasonBtn.dataset.regularSeasonWins = finalWins;
+                teamRating.textContent = Math.round(teamRatingData.totalRating);
+                
+                // Display current roster
+                renderCurrentRoster();
+                
+                // Initialize free agents
+                initializeFreeAgents();
+                
+                // Initialize trade partners
+                initializeTradePartners();
             });
 
             function getOpponentRating(round, regularSeasonWins) {
@@ -2509,7 +2839,7 @@
             simPlayoffsBtn.addEventListener('click', () => {
                 const teamRatingData = getTeamRatingWithChemistry(yourTeam);
                 const avgRating = teamRatingData.totalRating / TEAM_SIZE;
-                const regularSeasonWins = parseInt(simSeasonBtn.dataset.regularSeasonWins || 0);
+                const regularSeasonWins = parseInt(finishBtn.dataset.regularSeasonWins || 0);
 
                 const roundNames = ["First Round", "Conference Semifinals", "Conference Finals", "NBA Finals"];
 
