@@ -2693,7 +2693,7 @@
                         try {
                             const card = createPlayerCard(p, true);
                             const removeButton = card.querySelector('.draft-btn');
-                            if (yourTeam.length === TEAM_SIZE && simSeasonBtn.style.display !== 'none') removeButton.disabled = true;
+                            if (yourTeam.length === TEAM_SIZE && finishBtn.style.display !== 'none') removeButton.disabled = true;
                             yourTeamEl.appendChild(card);
                         } catch (error) {
                             console.error('Error rendering team player card for:', p.name, error);
@@ -2703,7 +2703,7 @@
                     teamCountEl.textContent = `${yourTeam.length}`;
                     playerCountEl.textContent = `${availablePlayers.length}`;
                     positionLabelEl.textContent = currentLabel;
-                    simSeasonBtn.disabled = yourTeam.length !== TEAM_SIZE;
+                    finishBtn.disabled = yourTeam.length !== TEAM_SIZE;
                     draftHeaderEl.textContent = yourTeam.length < TEAM_SIZE ? `Draft ${currentPositionInfo.label.slice(0, -1)}` : 'Your Team is Ready';
 
                     if (yourTeam.length === TEAM_SIZE) botDraftedSectionEl.classList.add('hidden');
