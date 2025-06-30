@@ -268,6 +268,146 @@
     </div>
 
     <script>
+        // Player information database with achievements and awards
+        const playerInfoMap = {
+            "Giannis Antetokounmpo": {
+                achievements: [
+                    "2x NBA MVP (2019, 2020)",
+                    "NBA Finals MVP (2021)",
+                    "Defensive Player of the Year (2020)",
+                    "7x NBA All-Star",
+                    "7x All-NBA Team",
+                    "5x NBA All-Defensive Team",
+                    "Most Improved Player (2017)",
+                    "NBA All-Star Game MVP (2021)",
+                    "NBA Champion (2021)"
+                ]
+            },
+            "LeBron James": {
+                achievements: [
+                    "4x NBA MVP (2009, 2010, 2012, 2013)",
+                    "4x NBA Finals MVP",
+                    "4x NBA Champion",
+                    "19x NBA All-Star",
+                    "18x All-NBA Team",
+                    "6x NBA All-Defensive Team",
+                    "NBA All-Star Game MVP (2006, 2008, 2018)",
+                    "Rookie of the Year (2004)"
+                ]
+            },
+            "Stephen Curry": {
+                achievements: [
+                    "2x NBA MVP (2015, 2016)",
+                    "4x NBA Champion",
+                    "NBA Finals MVP (2022)",
+                    "9x NBA All-Star",
+                    "8x All-NBA Team",
+                    "NBA All-Star Game MVP (2022)",
+                    "3-Point Contest Champion (2015, 2021)"
+                ]
+            },
+            "Kevin Durant": {
+                achievements: [
+                    "NBA MVP (2014)",
+                    "2x NBA Finals MVP",
+                    "2x NBA Champion",
+                    "13x NBA All-Star",
+                    "10x All-NBA Team",
+                    "NBA All-Star Game MVP (2012, 2019)",
+                    "Rookie of the Year (2008)",
+                    "4x NBA Scoring Champion"
+                ]
+            },
+            "Nikola Jokic": {
+                achievements: [
+                    "2x NBA MVP (2021, 2022)",
+                    "NBA Finals MVP (2023)",
+                    "NBA Champion (2023)",
+                    "6x NBA All-Star",
+                    "5x All-NBA Team",
+                    "NBA All-Star Game MVP (2024)"
+                ]
+            },
+            "Joel Embiid": {
+                achievements: [
+                    "NBA MVP (2023)",
+                    "7x NBA All-Star",
+                    "5x All-NBA Team",
+                    "3x NBA All-Defensive Team",
+                    "2x NBA Scoring Champion"
+                ]
+            },
+            "Luka Doncic": {
+                achievements: [
+                    "5x NBA All-Star",
+                    "4x All-NBA Team",
+                    "Rookie of the Year (2019)",
+                    "NBA All-Star Game MVP (2023)"
+                ]
+            },
+            "Damian Lillard": {
+                achievements: [
+                    "7x NBA All-Star",
+                    "7x All-NBA Team",
+                    "NBA 75th Anniversary Team",
+                    "Rookie of the Year (2013)"
+                ]
+            },
+            "Jayson Tatum": {
+                achievements: [
+                    "5x NBA All-Star",
+                    "3x All-NBA Team",
+                    "NBA All-Star Game MVP (2023)"
+                ]
+            },
+            "Anthony Davis": {
+                achievements: [
+                    "NBA Champion (2020)",
+                    "8x NBA All-Star",
+                    "4x All-NBA Team",
+                    "4x NBA All-Defensive Team",
+                    "NBA All-Star Game MVP (2017)"
+                ]
+            }
+        };
+
+        // Function to show player information modal
+        function showPlayerInfo(playerName) {
+            console.log('showPlayerInfo called for:', playerName);
+            const playerInfo = playerInfoMap[playerName];
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay show';
+            modal.style.zIndex = '9999';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3 class="text-2xl font-bold mb-4 text-gray-900">${playerName}</h3>
+                    ${playerInfo ? `
+                        <div class="text-left">
+                            <h4 class="text-lg font-semibold mb-3 text-blue-600">Achievements & Awards:</h4>
+                            <ul class="space-y-2">
+                                ${playerInfo.achievements.map(achievement => 
+                                    `<li class="text-gray-700">• ${achievement}</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                    ` : `
+                        <p class="text-gray-600">No detailed information available for this player.</p>
+                    `}
+                    <button onclick="this.closest('.modal-overlay').remove()" class="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                        Close
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const PLAYOFF_WIN_THRESHOLD = 40;
             const TEAM_SIZE = 5;
@@ -1741,144 +1881,6 @@
                     chemistryBonus: chemistry.bonus,
                     chemistryPairs: chemistry.pairs
                 };
-            }
-
-            // Player information database with achievements and awards
-            const playerInfoMap = {
-                "Giannis Antetokounmpo": {
-                    achievements: [
-                        "2x NBA MVP (2019, 2020)",
-                        "NBA Finals MVP (2021)",
-                        "Defensive Player of the Year (2020)",
-                        "7x NBA All-Star",
-                        "7x All-NBA Team",
-                        "5x NBA All-Defensive Team",
-                        "Most Improved Player (2017)",
-                        "NBA All-Star Game MVP (2021)",
-                        "NBA Champion (2021)"
-                    ]
-                },
-                "LeBron James": {
-                    achievements: [
-                        "4x NBA MVP (2009, 2010, 2012, 2013)",
-                        "4x NBA Finals MVP",
-                        "4x NBA Champion",
-                        "19x NBA All-Star",
-                        "18x All-NBA Team",
-                        "6x NBA All-Defensive Team",
-                        "NBA All-Star Game MVP (2006, 2008, 2018)",
-                        "Rookie of the Year (2004)"
-                    ]
-                },
-                "Stephen Curry": {
-                    achievements: [
-                        "2x NBA MVP (2015, 2016)",
-                        "4x NBA Champion",
-                        "NBA Finals MVP (2022)",
-                        "9x NBA All-Star",
-                        "8x All-NBA Team",
-                        "NBA All-Star Game MVP (2022)",
-                        "3-Point Contest Champion (2015, 2021)"
-                    ]
-                },
-                "Kevin Durant": {
-                    achievements: [
-                        "NBA MVP (2014)",
-                        "2x NBA Finals MVP",
-                        "2x NBA Champion",
-                        "13x NBA All-Star",
-                        "10x All-NBA Team",
-                        "NBA All-Star Game MVP (2012, 2019)",
-                        "Rookie of the Year (2008)",
-                        "4x NBA Scoring Champion"
-                    ]
-                },
-                "Nikola Jokic": {
-                    achievements: [
-                        "2x NBA MVP (2021, 2022)",
-                        "NBA Finals MVP (2023)",
-                        "NBA Champion (2023)",
-                        "6x NBA All-Star",
-                        "5x All-NBA Team",
-                        "NBA All-Star Game MVP (2024)"
-                    ]
-                },
-                "Joel Embiid": {
-                    achievements: [
-                        "NBA MVP (2023)",
-                        "7x NBA All-Star",
-                        "5x All-NBA Team",
-                        "3x NBA All-Defensive Team",
-                        "2x NBA Scoring Champion"
-                    ]
-                },
-                "Luka Doncic": {
-                    achievements: [
-                        "5x NBA All-Star",
-                        "4x All-NBA Team",
-                        "Rookie of the Year (2019)",
-                        "NBA All-Star Game MVP (2023)"
-                    ]
-                },
-                "Damian Lillard": {
-                    achievements: [
-                        "7x NBA All-Star",
-                        "7x All-NBA Team",
-                        "NBA 75th Anniversary Team",
-                        "Rookie of the Year (2013)"
-                    ]
-                },
-                "Jayson Tatum": {
-                    achievements: [
-                        "5x NBA All-Star",
-                        "3x All-NBA Team",
-                        "NBA All-Star Game MVP (2023)"
-                    ]
-                },
-                "Anthony Davis": {
-                    achievements: [
-                        "NBA Champion (2020)",
-                        "8x NBA All-Star",
-                        "4x All-NBA Team",
-                        "4x NBA All-Defensive Team",
-                        "NBA All-Star Game MVP (2017)"
-                    ]
-                }
-            };
-
-            // Function to show player information modal
-            function showPlayerInfo(playerName) {
-                const playerInfo = playerInfoMap[playerName];
-                const modal = document.createElement('div');
-                modal.className = 'modal-overlay show';
-                modal.innerHTML = `
-                    <div class="modal-content">
-                        <h3 class="text-2xl font-bold mb-4 text-gray-900">${playerName}</h3>
-                        ${playerInfo ? `
-                            <div class="text-left">
-                                <h4 class="text-lg font-semibold mb-3 text-blue-600">Achievements & Awards:</h4>
-                                <ul class="space-y-2">
-                                    ${playerInfo.achievements.map(achievement => 
-                                        `<li class="text-gray-700">• ${achievement}</li>`
-                                    ).join('')}
-                                </ul>
-                            </div>
-                        ` : `
-                            <p class="text-gray-600">No detailed information available for this player.</p>
-                        `}
-                        <button onclick="this.closest('.modal-overlay').remove()" class="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                            Close
-                        </button>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-                
-                // Close modal when clicking outside
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.remove();
-                    }
-                });
             }
         });
     </script>
