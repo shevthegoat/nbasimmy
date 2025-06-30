@@ -694,31 +694,32 @@
             `;
             
             if (playerInfo) {
-                modalContent += `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                        <!-- Basic Info -->
-                        <div class="space-y-4">
-                            <div>
-                                <h4 class="text-lg font-semibold mb-3 text-blue-600 border-b border-blue-200 pb-1">Player Information</h4>
-                                <div class="space-y-2 text-sm">
-                                    <div class="flex justify-between"><span class="font-medium">Team:</span> <span>${playerInfo.team || 'N/A'}</span></div>
-                                    <div class="flex justify-between"><span class="font-medium">Position:</span> <span>${playerInfo.position || 'N/A'}</span></div>
-                                    <div class="flex justify-between"><span class="font-medium">Jersey:</span> <span>#${playerInfo.jersey || 'N/A'}</span></div>
-                                    <div class="flex justify-between"><span class="font-medium">Height:</span> <span>${playerInfo.height || 'N/A'}</span></div>
-                                    <div class="flex justify-between"><span class="font-medium">Weight:</span> <span>${playerInfo.weight || 'N/A'}</span></div>
-                                    <div class="flex justify-between"><span class="font-medium">Age:</span> <span>${playerInfo.age || 'N/A'}</span></div>
-                                    <div class="flex justify-between"><span class="font-medium">Years in NBA:</span> <span>${playerInfo.yearsInNBA || 'N/A'}</span></div>
-                                    <div class="flex justify-between"><span class="font-medium">Draft:</span> <span>${playerInfo.draftInfo || 'N/A'}</span></div>
-                                    <div class="flex justify-between"><span class="font-medium">College:</span> <span>${playerInfo.college || 'N/A'}</span></div>
+                // Check if player has enhanced information (new format)
+                if (playerInfo.team && playerInfo.stats) {
+                    modalContent += `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                            <!-- Basic Info -->
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="text-lg font-semibold mb-3 text-blue-600 border-b border-blue-200 pb-1">Player Information</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between"><span class="font-medium">Team:</span> <span>${playerInfo.team}</span></div>
+                                        <div class="flex justify-between"><span class="font-medium">Position:</span> <span>${playerInfo.position}</span></div>
+                                        <div class="flex justify-between"><span class="font-medium">Jersey:</span> <span>#${playerInfo.jersey}</span></div>
+                                        <div class="flex justify-between"><span class="font-medium">Height:</span> <span>${playerInfo.height}</span></div>
+                                        <div class="flex justify-between"><span class="font-medium">Weight:</span> <span>${playerInfo.weight}</span></div>
+                                        <div class="flex justify-between"><span class="font-medium">Age:</span> <span>${playerInfo.age}</span></div>
+                                        <div class="flex justify-between"><span class="font-medium">Years in NBA:</span> <span>${playerInfo.yearsInNBA}</span></div>
+                                        <div class="flex justify-between"><span class="font-medium">Draft:</span> <span>${playerInfo.draftInfo}</span></div>
+                                        <div class="flex justify-between"><span class="font-medium">College:</span> <span>${playerInfo.college}</span></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <!-- Stats -->
-                        <div class="space-y-4">
-                            <div>
-                                <h4 class="text-lg font-semibold mb-3 text-green-600 border-b border-green-200 pb-1">Season Stats</h4>
-                                ${playerInfo.stats ? `
+                            
+                            <!-- Stats -->
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="text-lg font-semibold mb-3 text-green-600 border-b border-green-200 pb-1">Season Stats</h4>
                                     <div class="space-y-2 text-sm">
                                         <div class="flex justify-between"><span class="font-medium">Points:</span> <span>${playerInfo.stats.ppg} PPG</span></div>
                                         <div class="flex justify-between"><span class="font-medium">Assists:</span> <span>${playerInfo.stats.apg} APG</span></div>
@@ -729,21 +730,35 @@
                                         <div class="flex justify-between"><span class="font-medium">3PT%:</span> <span>${playerInfo.stats.threePct}</span></div>
                                         <div class="flex justify-between"><span class="font-medium">FT%:</span> <span>${playerInfo.stats.ftPct}</span></div>
                                     </div>
-                                ` : '<p class="text-gray-500 text-sm">Stats not available</p>'}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Achievements -->
-                    <div class="mt-6">
-                        <h4 class="text-lg font-semibold mb-3 text-purple-600 border-b border-purple-200 pb-1">Achievements & Awards</h4>
-                        <ul class="space-y-2 text-sm">
-                            ${playerInfo.achievements.map(achievement => 
-                                `<li class="text-gray-700">• ${achievement}</li>`
-                            ).join('')}
-                        </ul>
-                    </div>
-                `;
+                    `;
+                } else {
+                    // Fallback to basic format (college + achievements)
+                    modalContent += `
+                        <div class="text-left">
+                            <div class="mb-4">
+                                <h4 class="text-lg font-semibold mb-2 text-blue-600">College:</h4>
+                                <p class="text-gray-700">${playerInfo.college || 'Information not available'}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Achievements section (always show if available)
+                if (playerInfo.achievements && playerInfo.achievements.length > 0) {
+                    modalContent += `
+                        <div class="mt-6">
+                            <h4 class="text-lg font-semibold mb-3 text-purple-600 border-b border-purple-200 pb-1">Achievements & Awards</h4>
+                            <ul class="space-y-2 text-sm">
+                                ${playerInfo.achievements.map(achievement => 
+                                    `<li class="text-gray-700">• ${achievement}</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
             } else {
                 modalContent += `
                     <p class="text-gray-600">No detailed information available for this player.</p>
