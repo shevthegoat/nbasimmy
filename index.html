@@ -2084,40 +2084,33 @@
                     // 1-for-1 trade
                     const yourPlayerRating = yourSelectedPlayers[0].rating;
                     const partnerPlayerRating = partnerSelectedPlayers[0].rating;
-                    const ratingDifference = yourPlayerRating - partnerPlayerRating;
-                    
-                    console.log('TRADE DEBUG - Your player:', yourSelectedPlayers[0].name, 'Rating:', yourPlayerRating);
-                    console.log('TRADE DEBUG - Partner player:', partnerSelectedPlayers[0].name, 'Rating:', partnerPlayerRating);
-                    console.log('TRADE DEBUG - Rating difference:', ratingDifference);
+                    const ratingDifference = partnerPlayerRating - yourPlayerRating;
                     
                     if (Math.abs(ratingDifference) <= 5) {
                         // Fair trade (within 5 rating points)
                         interest = 100;
-                        console.log('Fair trade - accepted');
                     } else if (ratingDifference > 0) {
-                        // You're getting a better player (AI getting scammed)
-                        interest = 0; // AI won't accept
-                        console.log('You getting better player - rejected');
-                    } else {
                         // AI is getting a better player (you getting scammed)
                         interest = 100; // AI accepts
-                        console.log('AI getting better player - accepted');
+                    } else {
+                        // You are getting a better player (AI getting scammed)
+                        interest = 0; // AI won't accept
                     }
                 } else {
-                    // Multi-player trade - evaluate each player individually
+                    // Multi-player trade - evaluate total rating
                     const yourTotalRating = yourSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
                     const partnerTotalRating = partnerSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
-                    const totalRatingDifference = yourTotalRating - partnerTotalRating;
+                    const totalRatingDifference = partnerTotalRating - yourTotalRating;
                     
                     if (Math.abs(totalRatingDifference) <= 5) {
                         // Fair trade (within 5 total rating points)
                         interest = 100;
                     } else if (totalRatingDifference > 0) {
-                        // You're getting better players (AI getting scammed)
-                        interest = 0; // AI won't accept
-                    } else {
                         // AI is getting better players (you getting scammed)
                         interest = 100; // AI accepts
+                    } else {
+                        // You are getting better players (AI getting scammed)
+                        interest = 0; // AI won't accept
                     }
                 }
 
