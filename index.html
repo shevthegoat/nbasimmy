@@ -267,109 +267,6 @@
         </div>
     </div>
 
-    <!-- Team Management Page -->
-    <div id="team-management-page" class="hidden min-h-screen bg-gray-50 py-8">
-        <div class="container mx-auto px-4">
-            <!-- Header -->
-            <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold nba-gradient-text mb-2">Team Management</h1>
-                <p class="text-xl text-gray-600">Manage your <span id="management-team-name" class="font-bold text-primary"></span> roster</p>
-                <div class="mt-4">
-                    <button id="back-to-draft-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">← Back to Draft</button>
-                </div>
-            </div>
-
-            <!-- Team Overview -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-                <h2 class="text-2xl font-semibold mb-4 text-gray-900">Current Roster</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <p class="text-sm text-gray-600">Cap Space</p>
-                        <p class="text-2xl font-bold text-green-600">$<span id="management-cap-space">145</span>M</p>
-                    </div>
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <p class="text-sm text-gray-600">Roster Spots</p>
-                        <p class="text-2xl font-bold text-blue-600"><span id="roster-spots">5</span>/5</p>
-                    </div>
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <p class="text-sm text-gray-600">Team Rating</p>
-                        <p class="text-2xl font-bold text-purple-600"><span id="team-rating">0</span></p>
-                    </div>
-                </div>
-                <div id="current-roster-display" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"></div>
-            </div>
-
-            <!-- Management Tabs -->
-            <div class="bg-white rounded-lg shadow-md mb-8">
-                <div class="border-b border-gray-200">
-                    <nav class="flex space-x-8 px-6" aria-label="Tabs">
-                        <button id="free-agents-tab" class="tab-button border-b-2 border-blue-500 text-blue-600 py-4 px-1 text-sm font-medium">
-                            Free Agents
-                        </button>
-                        <button id="trades-tab" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium">
-                            Trades
-                        </button>
-
-                    </nav>
-                </div>
-
-                <!-- Free Agents Tab -->
-                <div id="free-agents-content" class="tab-content p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold">Available Free Agents</h3>
-                        <div class="flex space-x-2">
-                            <input type="text" id="fa-search" placeholder="Search players..." class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <select id="fa-position-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">All Positions</option>
-                                <option value="PG">Point Guard</option>
-                                <option value="SG">Shooting Guard</option>
-                                <option value="SF">Small Forward</option>
-                                <option value="PF">Power Forward</option>
-                                <option value="C">Center</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="free-agents-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
-                </div>
-
-                <!-- Trades Tab -->
-                <div id="trades-content" class="tab-content hidden p-6">
-                    <h3 class="text-xl font-semibold mb-4">Trade Center</h3>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h4 class="text-lg font-semibold mb-3">Your Team</h4>
-                            <div id="trade-your-team" class="space-y-2"></div>
-                        </div>
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h4 class="text-lg font-semibold mb-3">Trade Partner</h4>
-                            <select id="trade-partner-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3">
-                                <option value="">Select a team...</option>
-                            </select>
-                            <div id="trade-partner-team" class="space-y-2"></div>
-                        </div>
-                    </div>
-                    <div class="text-center mt-6">
-                        <button id="propose-trade-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Propose Trade
-                        </button>
-                    </div>
-                </div>
-
-
-            </div>
-        </div>
-    </div>
-
-    <!-- Start Season Button Section -->
-    <div class="text-center mt-8 mb-8">
-        <button id="start-season-btn-main" class="nba-gradient hover:opacity-90 text-white font-bold py-3 px-8 rounded-lg text-xl transition duration-300">
-            Start Season
-        </button>
-    </div>
-            </div>
-        </div>
-    </div>
-
     <script>
         // Player information database with achievements and college
         const playerInfoMap = {
@@ -2994,26 +2891,7 @@
             }
 
             finishBtn.addEventListener('click', () => {
-                // Navigate to team management page
-                gameContainer.classList.add('hidden');
-                teamManagementPage.classList.remove('hidden');
-                
-                // Update management page with current team info
-                managementTeamName.textContent = selectedTeamName;
-                managementCapSpace.textContent = currentCapSpace.toFixed(1);
-                rosterSpots.textContent = yourTeam.length;
-                
-                const teamRatingData = getTeamRatingWithChemistry(yourTeam);
-                teamRating.textContent = Math.round(teamRatingData.totalRating);
-                
-                // Display current roster
-                renderCurrentRoster();
-                
-                // Initialize free agents
-                initializeFreeAgents();
-                
-                // Initialize trade partners
-                initializeTradePartners();
+                startSeason();
             });
 
             function getOpponentRating(round, regularSeasonWins) {
