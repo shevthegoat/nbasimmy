@@ -2051,6 +2051,9 @@
                     const player = yourTeam.find(p => p.name === playerName);
                     if (player) {
                         yourSelectedPlayers.push(player);
+                        console.log('Found your player:', player.name, 'Rating:', player.rating);
+                    } else {
+                        console.log('Could not find your player:', playerName);
                     }
                 });
 
@@ -2058,9 +2061,13 @@
                 const partnerSelectedPlayers = [];
                 document.querySelectorAll('.trade-checkbox-partner:checked').forEach(checkbox => {
                     const playerName = checkbox.id.replace('trade-partner-', '').replace(/-/g, ' ');
+                    // Find the player from the players array (this should have the correct ratings)
                     const player = players.find(p => p.name === playerName);
                     if (player) {
                         partnerSelectedPlayers.push(player);
+                        console.log('Found partner player:', player.name, 'Rating:', player.rating);
+                    } else {
+                        console.log('Could not find partner player:', playerName);
                     }
                 });
 
