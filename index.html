@@ -2086,13 +2086,9 @@
                     const partnerPlayerRating = partnerSelectedPlayers[0].rating;
                     const ratingDifference = yourPlayerRating - partnerPlayerRating;
                     
-                    console.log('Trade Debug:', {
-                        yourPlayer: yourSelectedPlayers[0].name,
-                        yourRating: yourPlayerRating,
-                        partnerPlayer: partnerSelectedPlayers[0].name,
-                        partnerRating: partnerPlayerRating,
-                        difference: ratingDifference
-                    });
+                    console.log('TRADE DEBUG - Your player:', yourSelectedPlayers[0].name, 'Rating:', yourPlayerRating);
+                    console.log('TRADE DEBUG - Partner player:', partnerSelectedPlayers[0].name, 'Rating:', partnerPlayerRating);
+                    console.log('TRADE DEBUG - Rating difference:', ratingDifference);
                     
                     if (Math.abs(ratingDifference) <= 5) {
                         // Fair trade (within 5 rating points)
