@@ -2084,12 +2084,12 @@
                     // 1-for-1 trade
                     const yourPlayerRating = yourSelectedPlayers[0].rating;
                     const partnerPlayerRating = partnerSelectedPlayers[0].rating;
-                    const ratingDifference = partnerPlayerRating - yourPlayerRating;
+                    const ratingDifference = yourPlayerRating - partnerPlayerRating;
                     
                     if (Math.abs(ratingDifference) <= 5) {
                         // Fair trade (within 5 rating points)
                         interest = 100;
-                    } else if (ratingDifference > 0) {
+                    } else if (ratingDifference < 0) {
                         // AI is getting a better player (you getting scammed)
                         interest = 100; // AI accepts
                     } else {
@@ -2100,12 +2100,12 @@
                     // Multi-player trade - evaluate total rating
                     const yourTotalRating = yourSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
                     const partnerTotalRating = partnerSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
-                    const totalRatingDifference = partnerTotalRating - yourTotalRating;
+                    const totalRatingDifference = yourTotalRating - partnerTotalRating;
                     
                     if (Math.abs(totalRatingDifference) <= 5) {
                         // Fair trade (within 5 total rating points)
                         interest = 100;
-                    } else if (totalRatingDifference > 0) {
+                    } else if (totalRatingDifference < 0) {
                         // AI is getting better players (you getting scammed)
                         interest = 100; // AI accepts
                     } else {
