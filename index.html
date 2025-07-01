@@ -2255,11 +2255,13 @@
                 renderPlayers();
             }
 
-            startBtn.addEventListener('click', () => {
-                startScreen.style.display = 'none';
-                teamSelectionScreen.classList.remove('hidden');
-                teamSelectionScreen.classList.add('flex');
-                renderTeams();
+            document.addEventListener('DOMContentLoaded', function() {
+                startBtn.addEventListener('click', () => {
+                    startScreen.style.display = 'none';
+                    teamSelectionScreen.classList.remove('hidden');
+                    teamSelectionScreen.classList.add('flex');
+                    renderTeams();
+                });
             });
 
             // Player name to image file mapping - only includes players with actual image files
