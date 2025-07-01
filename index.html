@@ -2079,15 +2079,26 @@
                     const partnerPlayerRating = partnerSelectedPlayers[0].rating;
                     const ratingDifference = yourPlayerRating - partnerPlayerRating;
                     
+                    console.log('Trade Debug:', {
+                        yourPlayer: yourSelectedPlayers[0].name,
+                        yourRating: yourPlayerRating,
+                        partnerPlayer: partnerSelectedPlayers[0].name,
+                        partnerRating: partnerPlayerRating,
+                        difference: ratingDifference
+                    });
+                    
                     if (Math.abs(ratingDifference) <= 5) {
                         // Fair trade (within 5 rating points)
                         interest = 100;
+                        console.log('Fair trade - accepted');
                     } else if (ratingDifference > 0) {
                         // You're getting a better player (AI getting scammed)
                         interest = 0; // AI won't accept
+                        console.log('You getting better player - rejected');
                     } else {
                         // AI is getting a better player (you getting scammed)
                         interest = 100; // AI accepts
+                        console.log('AI getting better player - accepted');
                     }
                 } else {
                     // Multi-player trade - evaluate each player individually
