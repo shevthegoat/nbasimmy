@@ -228,7 +228,7 @@
     <div id="game-container" class="hidden">
         <div id="confetti-container" class="absolute top-0 left-0 w-full h-full pointer-events-none z-50 overflow-hidden"></div>
         <div class="container mx-auto p-4 my-8">
-            <h1 id="draft-header" class="text-4xl font-bold text-center mb-8 nba-gradient-text">Draft Point Guard</h1>
+            <h1 id="draft-header" class="text-4xl font-bold text-center mb-8 nba-gradient-text">Season <span id="season-number">1</span> - Draft Point Guard</h1>
             <div id="draft-section" class="grid grid-cols-1 md:grid-cols-5 gap-8">
                 <div class="md:col-span-3">
                     <div class="flex items-center justify-between mb-4">
@@ -254,9 +254,17 @@
                 <div id="bot-drafted-players" class="bg-card border rounded-lg p-4 h-48 overflow-y-auto shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
             <div id="controls" class="text-center mt-8 space-x-4">
-                <button id="finish-btn" class="nba-gradient hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg text-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg">Finish</button>
+                <button id="sim-season-btn" class="nba-gradient hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg text-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg">Simulate Season</button>
                 <button id="sim-playoffs-btn" class="nba-gradient hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg text-lg transition duration-300 disabled:bg-muted disabled:text-muted-foreground shadow-md hover:shadow-lg" style="display: none;">Simulate Playoffs</button>
-                <button id="reset-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-lg transition duration-300 shadow-md hover:shadow-lg" style="display: none;">Draft Again</button>
+            </div>
+            
+            <div id="season-end-screen" class="hidden text-center mt-8">
+                <h2 class="text-2xl font-bold mb-6 nba-gradient-text">Season Complete!</h2>
+                <p class="text-lg mb-8">What would you like to do next?</p>
+                <div class="space-x-4">
+                    <button id="draft-new-team-btn" class="nba-gradient hover:opacity-90 text-white font-bold py-3 px-6 rounded-lg text-lg transition duration-300 shadow-md hover:shadow-lg">Draft New Team</button>
+                    <button id="continue-dynasty-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition duration-300 shadow-md hover:shadow-lg">Continue Dynasty</button>
+                </div>
             </div>
             <div id="results-section" class="text-center mt-8">
                 <h2 class="text-2xl font-semibold mb-4 nba-gradient-text">Results</h2>
@@ -1668,9 +1676,8 @@
 
             const playerPoolEl = document.getElementById('player-pool');
             const yourTeamEl = document.getElementById('your-team');
-            const finishBtn = document.getElementById('finish-btn');
+            const simSeasonBtn = document.getElementById('sim-season-btn');
             const simPlayoffsBtn = document.getElementById('sim-playoffs-btn');
-            const resetBtn = document.getElementById('reset-btn');
             const resultsDisplay = document.getElementById('results-display');
             const confettiContainer = document.getElementById('confetti-container');
             const teamCountEl = document.getElementById('team-count');
@@ -1691,27 +1698,10 @@
             const modalTitle = document.getElementById('modal-title');
             const modalMessage = document.getElementById('modal-message');
             const modalCloseBtn = document.getElementById('modal-close-btn');
-            
-            // Team management page elements
-            const teamManagementPage = document.getElementById('team-management-page');
-            const managementTeamName = document.getElementById('management-team-name');
-            const managementCapSpace = document.getElementById('management-cap-space');
-            const rosterSpots = document.getElementById('roster-spots');
-            const teamRating = document.getElementById('team-rating');
-            const currentRosterDisplay = document.getElementById('current-roster-display');
-            const backToDraftBtn = document.getElementById('back-to-draft-btn');
-            const freeAgentsTab = document.getElementById('free-agents-tab');
-            const tradesTab = document.getElementById('trades-tab');
-            const freeAgentsContent = document.getElementById('free-agents-content');
-            const tradesContent = document.getElementById('trades-content');
-            const freeAgentsList = document.getElementById('free-agents-list');
-            const faSearch = document.getElementById('fa-search');
-            const faPositionFilter = document.getElementById('fa-position-filter');
-            const tradeYourTeam = document.getElementById('trade-your-team');
-            const tradePartnerSelect = document.getElementById('trade-partner-select');
-            const tradePartnerTeam = document.getElementById('trade-partner-team');
-            const proposeTradeBtn = document.getElementById('propose-trade-btn');
-            const startSeasonBtnMain = document.getElementById('start-season-btn-main');
+            const seasonEndScreen = document.getElementById('season-end-screen');
+            const draftNewTeamBtn = document.getElementById('draft-new-team-btn');
+            const continueDynastyBtn = document.getElementById('continue-dynasty-btn');
+            const seasonNumberEl = document.getElementById('season-number');
 
             let yourTeam = [];
             let botTeams = [];
@@ -1720,486 +1710,48 @@
             let currentCapSpace = STARTING_CAP_SPACE;
             let currentPlayoffRound = 0;
             let currentSeries = { userWins: 0, oppWins: 0, opponentRating: 0, opponentTeam: null };
+            let currentSeason = 1;
+            let originalTeam = []; // Store the original team for dynasty mode
 
             modalCloseBtn.addEventListener('click', () => hideModal());
 
-            // Team Management Functions
-            function renderCurrentRoster() {
-                currentRosterDisplay.innerHTML = '';
-                yourTeam.forEach(player => {
-                    const playerCard = document.createElement('div');
-                    playerCard.className = 'bg-white border rounded-lg p-4 shadow-sm';
-                    playerCard.innerHTML = `
-                        <div class="flex items-center space-x-3">
-                            <img src="${playerImageMap[player.name] || 'https://placehold.co/60x60/333333/ffffff?text=?'}" 
-                                 alt="${player.name}" 
-                                 class="w-12 h-12 rounded-full object-contain">
-                            <div class="flex-1">
-                                <h4 class="font-semibold text-sm">${player.name}</h4>
-                                <p class="text-xs text-gray-600">${player.position} • $${player.salary.toFixed(1)}M</p>
-                            </div>
-                            <button onclick="removePlayerFromRoster('${player.name}')" 
-                                    class="text-red-600 hover:text-red-800 text-sm font-medium">
-                                Remove
-                            </button>
-                        </div>
-                    `;
-                    currentRosterDisplay.appendChild(playerCard);
-                });
-            }
-
-            function initializeFreeAgents() {
-                // Create a list of available free agents (players not on any team)
-                const allPlayers = [...players];
-                const draftedPlayers = [...yourTeam, ...botTeams.flat()];
-                const freeAgents = allPlayers.filter(player => 
-                    !draftedPlayers.some(drafted => drafted.name === player.name)
-                );
-                
-                renderFreeAgents(freeAgents);
-            }
-
-            function renderFreeAgents(freeAgents) {
-                freeAgentsList.innerHTML = '';
-                freeAgents.forEach(player => {
-                    const playerCard = document.createElement('div');
-                    playerCard.className = 'bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow';
-                    playerCard.innerHTML = `
-                        <div class="flex items-center space-x-3 mb-3">
-                            <img src="${playerImageMap[player.name] || 'https://placehold.co/60x60/333333/ffffff?text=?'}" 
-                                 alt="${player.name}" 
-                                 class="w-12 h-12 rounded-full object-contain">
-                            <div class="flex-1">
-                                <h4 class="font-semibold">${player.name}</h4>
-                                <p class="text-sm text-gray-600">${player.position}</p>
-                            </div>
-                        </div>
-                        <div class="text-sm text-gray-600 mb-3">
-                            <p>Salary: $${player.salary.toFixed(1)}M</p>
-                            <p>Rating: ${player.rating}</p>
-                        </div>
-                        <button onclick="signFreeAgent('${player.name}')" 
-                                class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 rounded-lg transition duration-300">
-                            Sign Player
-                        </button>
-                    `;
-                    freeAgentsList.appendChild(playerCard);
-                });
-            }
-
-            function initializeTradePartners() {
-                tradePartnerSelect.innerHTML = '<option value="">Select a team...</option>';
-                nbaTeams.forEach(team => {
-                    if (team.name !== selectedTeamName) {
-                        const option = document.createElement('option');
-                        option.value = team.name;
-                        option.textContent = team.name;
-                        tradePartnerSelect.appendChild(option);
-                    }
-                });
-                
-                renderTradeYourTeam();
-                
-                // Add event listener for trade partner selection
-                tradePartnerSelect.addEventListener('change', (e) => {
-                    const selectedTeam = e.target.value;
-                    if (selectedTeam) {
-                        renderTradePartnerTeam(selectedTeam);
-                    } else {
-                        tradePartnerTeam.innerHTML = '';
-                    }
-                });
-            }
-
-            function renderTradeYourTeam() {
-                tradeYourTeam.innerHTML = '';
-                yourTeam.forEach(player => {
-                    const playerItem = document.createElement('div');
-                    playerItem.className = 'flex items-center justify-between p-2 bg-white rounded border mb-2';
-                    playerItem.innerHTML = `
-                        <div class="flex items-center space-x-2">
-                            <input type="checkbox" id="trade-your-${player.name.replace(/\s+/g, '-')}" class="trade-checkbox-your">
-                            <span class="text-sm">${player.name} (${player.position})</span>
-                        </div>
-                    `;
-                    tradeYourTeam.appendChild(playerItem);
-                });
-            }
-
-            function renderTradePartnerTeam(teamName) {
-                tradePartnerTeam.innerHTML = '';
-                
-                // Create a random 5-player roster for the selected team
-                const availablePlayers = players.filter(p => 
-                    !yourTeam.some(yourPlayer => yourPlayer.name === p.name) &&
-                    !botTeams.flat().some(botPlayer => botPlayer.name === p.name)
-                );
-                
-                // If not enough available players, use all players
-                const playerPool = availablePlayers.length >= 5 ? availablePlayers : players;
-                
-                // Randomly select 5 players for this team
-                const shuffledPlayers = [...playerPool].sort(() => Math.random() - 0.5);
-                const teamRoster = shuffledPlayers.slice(0, 5);
-                
-                if (teamRoster.length > 0) {
-                    teamRoster.forEach(player => {
-                        const playerItem = document.createElement('div');
-                        playerItem.className = 'flex items-center justify-between p-2 bg-white rounded border mb-2';
-                        playerItem.innerHTML = `
-                            <div class="flex items-center space-x-2">
-                                <input type="checkbox" id="trade-partner-${player.name.replace(/\s+/g, '-')}" class="trade-checkbox-partner">
-                                <span class="text-sm">${player.name} (${player.position})</span>
-                            </div>
-                        `;
-                        tradePartnerTeam.appendChild(playerItem);
-                    });
-                } else {
-                    tradePartnerTeam.innerHTML = '<p class="text-gray-500 text-sm">No players available for this team.</p>';
-                }
-            }
-
-            // Global functions for team management
-            window.removePlayerFromRoster = function(playerName) {
-                const player = yourTeam.find(p => p.name === playerName);
-                if (player) {
-                    yourTeam = yourTeam.filter(p => p.name !== playerName);
-                    currentCapSpace += player.salary;
-                    managementCapSpace.textContent = currentCapSpace.toFixed(1);
-                    rosterSpots.textContent = yourTeam.length;
-                    
-                    const teamRatingData = getTeamRatingWithChemistry(yourTeam);
-                    teamRating.textContent = Math.round(teamRatingData.totalRating);
-                    
-                    renderCurrentRoster();
-                    renderTradeYourTeam();
-                }
-            };
-
-            window.signFreeAgent = function(playerName) {
-                const player = players.find(p => p.name === playerName);
-                if (player && currentCapSpace >= player.salary && yourTeam.length < 5) {
-                    yourTeam.push(player);
-                    currentCapSpace -= player.salary;
-                    managementCapSpace.textContent = currentCapSpace.toFixed(1);
-                    rosterSpots.textContent = yourTeam.length;
-                    
-                    const teamRatingData = getTeamRatingWithChemistry(yourTeam);
-                    teamRating.textContent = Math.round(teamRatingData.totalRating);
-                    
-                    renderCurrentRoster();
-                    renderTradeYourTeam();
-                    initializeFreeAgents(); // Refresh free agents list
-                } else if (currentCapSpace < player.salary) {
-                    showModal('Insufficient Cap Space', `You need $${(player.salary - currentCapSpace).toFixed(1)}M more cap space to sign ${playerName}.`);
-                } else if (yourTeam.length >= 5) {
-                    showModal('Roster Full', 'Your roster is at maximum capacity (5 players).');
-                }
-            };
-
-            // Tab switching functionality
-            function switchTab(activeTab, activeContent) {
-                // Hide all tab contents
-                [freeAgentsContent, tradesContent].forEach(content => {
-                    content.classList.add('hidden');
-                });
-                
-                // Remove active state from all tabs
-                [freeAgentsTab, tradesTab].forEach(tab => {
-                    tab.classList.remove('border-blue-500', 'text-blue-600');
-                    tab.classList.add('border-transparent', 'text-gray-500');
-                });
-                
-                // Show active content and highlight active tab
-                activeContent.classList.remove('hidden');
-                activeTab.classList.remove('border-transparent', 'text-gray-500');
-                activeTab.classList.add('border-blue-500', 'text-blue-600');
-            }
-
-            // Tab event listeners
-            freeAgentsTab.addEventListener('click', () => switchTab(freeAgentsTab, freeAgentsContent));
-            tradesTab.addEventListener('click', () => switchTab(tradesTab, tradesContent));
-
-            // Back to draft button
-            backToDraftBtn.addEventListener('click', () => {
-                teamManagementPage.classList.add('hidden');
-                gameContainer.classList.remove('hidden');
+            draftNewTeamBtn.addEventListener('click', () => {
+                // Reset everything and start fresh
+                yourTeam = [];
+                botTeams = [];
+                draftedPlayers = [];
+                currentCapSpace = STARTING_CAP_SPACE;
+                currentSeason = 1;
+                originalTeam = [];
+                seasonNumberEl.textContent = currentSeason;
+                resultsDisplay.textContent = 'Draft your 5-player team to begin!';
+                simPlayoffsBtn.style.display = 'none';
+                simPlayoffsBtn.textContent = 'Simulate Playoffs';
+                simSeasonBtn.style.display = 'inline-block';
+                hideSeasonEndScreen();
+                teamSelectionScreen.classList.remove('hidden');
+                teamSelectionScreen.classList.add('flex');
+                gameContainer.classList.add('hidden');
+                currentPlayoffRound = 0;
+                currentSeries = { userWins: 0, oppWins: 0, opponentRating: 0, opponentTeam: null };
+                renderTeams();
             });
 
-            // Propose trade button
-            proposeTradeBtn.addEventListener('click', () => {
-                proposeTrade();
-            });
-
-            // Main start season button
-            startSeasonBtnMain.addEventListener('click', () => {
-                if (yourTeam.length === 5) {
-                    startSeason();
-                } else {
-                    showModal('Incomplete Team', 'You need to draft 5 players before you can start the season.');
-                }
-            });
-
-            function proposeTrade() {
-                // Get selected players from your team
-                const yourSelectedPlayers = [];
-                document.querySelectorAll('.trade-checkbox-your:checked').forEach(checkbox => {
-                    const playerName = checkbox.id.replace('trade-your-', '').replace(/-/g, ' ');
-                    const player = yourTeam.find(p => p.name === playerName);
-                    if (player) {
-                        yourSelectedPlayers.push(player);
-                        console.log('Found your player:', player.name, 'Rating:', player.rating);
-                    } else {
-                        console.log('Could not find your player:', playerName);
-                    }
-                });
-
-                // Get selected players from partner team
-                const partnerSelectedPlayers = [];
-                document.querySelectorAll('.trade-checkbox-partner:checked').forEach(checkbox => {
-                    const playerName = checkbox.id.replace('trade-partner-', '').replace(/-/g, ' ');
-                    // Find the player from the players array (this should have the correct ratings)
-                    const player = players.find(p => p.name === playerName);
-                    if (player) {
-                        partnerSelectedPlayers.push(player);
-                        console.log('Found partner player:', player.name, 'Rating:', player.rating);
-                    } else {
-                        console.log('Could not find partner player:', playerName);
-                    }
-                });
-
-                if (yourSelectedPlayers.length === 0 && partnerSelectedPlayers.length === 0) {
-                    showModal('No Players Selected', 'Please select at least one player from either team to propose a trade.');
-                    return;
-                }
-
-                // Calculate trade interest based on individual player ratings
-                let interest = 0;
-                
-                // Handle different trade scenarios
-                if (yourSelectedPlayers.length === 1 && partnerSelectedPlayers.length === 1) {
-                    // 1-for-1 trade
-                    const yourPlayerRating = yourSelectedPlayers[0].rating;
-                    const partnerPlayerRating = partnerSelectedPlayers[0].rating;
-                    const ratingDifference = yourPlayerRating - partnerPlayerRating;
-                    
-                    if (Math.abs(ratingDifference) <= 5) {
-                        // Fair trade (within 5 rating points)
-                        interest = 100;
-                    } else if (ratingDifference < 0) {
-                        // AI is getting a better player (you getting scammed)
-                        interest = 100; // AI accepts
-                    } else {
-                        // You are getting a better player (AI getting scammed)
-                        interest = 0; // AI won't accept
-                    }
-                } else {
-                    // Multi-player trade - evaluate total rating
-                    const yourTotalRating = yourSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
-                    const partnerTotalRating = partnerSelectedPlayers.reduce((sum, p) => sum + p.rating, 0);
-                    const totalRatingDifference = yourTotalRating - partnerTotalRating;
-                    
-                    if (Math.abs(totalRatingDifference) <= 5) {
-                        // Fair trade (within 5 total rating points)
-                        interest = 100;
-                    } else if (totalRatingDifference < 0) {
-                        // AI is getting better players (you getting scammed)
-                        interest = 100; // AI accepts
-                    } else {
-                        // You are getting better players (AI getting scammed)
-                        interest = 0; // AI won't accept
-                    }
-                }
-
-                // No randomness or adjustments - it's either 0% or 100%
-                interest = Math.round(interest);
-
-                // Show trade interest modal
-                showTradeInterestModal(yourSelectedPlayers, partnerSelectedPlayers, interest);
-            }
-
-            function showTradeInterestModal(yourPlayers, partnerPlayers, interest) {
-                const modal = document.createElement('div');
-                modal.className = 'modal-overlay show';
-                
-                // Determine if it's a guaranteed deal (100% interest)
-                const isGuaranteedDeal = interest >= 100;
-                
-                modal.innerHTML = `
-                    <div class="modal-content max-w-md">
-                        <h3 class="text-xl font-bold mb-4">${isGuaranteedDeal ? 'DEAL DONE!' : 'Trade Proposal'}</h3>
-                        
-                        <div class="mb-4">
-                            <h4 class="font-semibold mb-2">Your Team Receives:</h4>
-                            ${partnerPlayers.length > 0 ? 
-                                partnerPlayers.map(p => `<div class="text-sm text-gray-600">• ${p.name} (${p.position}) - Rating: ${p.rating}</div>`).join('') :
-                                '<div class="text-sm text-gray-500">No players</div>'
-                            }
-                        </div>
-                        
-                        <div class="mb-4">
-                            <h4 class="font-semibold mb-2">Partner Team Receives:</h4>
-                            ${yourPlayers.length > 0 ? 
-                                yourPlayers.map(p => `<div class="text-sm text-gray-600">• ${p.name} (${p.position}) - Rating: ${p.rating}</div>`).join('') :
-                                '<div class="text-sm text-gray-500">No players</div>'
-                            }
-                        </div>
-                        
-                        ${!isGuaranteedDeal ? `
-                        <div class="mb-4">
-                            <h4 class="font-semibold mb-2">Trade Interest: ${interest}%</h4>
-                            <div class="w-full bg-gray-200 rounded-full h-4">
-                                <div class="h-4 rounded-full transition-all duration-500 ${interest >= 85 ? 'bg-green-500' : interest >= 60 ? 'bg-yellow-500' : 'bg-orange-500'}" 
-                                     style="width: ${interest}%"></div>
-                            </div>
-                            <div class="text-sm text-gray-600 mt-1">
-                                ${interest >= 85 ? 'Very High Interest - Very likely to accept' : 
-                                  interest >= 60 ? 'High Interest - Likely to accept' : 
-                                  'Moderate Interest - Good chance to accept'}
-                            </div>
-                            <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                <p class="text-sm text-yellow-800">
-                                    <strong>Note:</strong> Trades can only be executed when interest reaches 100%. 
-                                    Try adjusting your trade to make it more favorable for the other team.
-                                </p>
-                            </div>
-                        </div>
-                        ` : ''}
-                        
-                        <div class="flex space-x-2">
-                            ${isGuaranteedDeal ? `
-                                <button onclick="executeGuaranteedTrade()" 
-                                        class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
-                                    Confirm Trade
-                                </button>
-                            ` : `
-                                <button onclick="closeTradeModal()" 
-                                        class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
-                                    Cancel
-                                </button>
-                            `}
-                        </div>
-                    </div>
-                `;
-                
-                document.body.appendChild(modal);
-                
-                // Store the trade data for execution
-                modal.dataset.yourPlayers = JSON.stringify(yourPlayers);
-                modal.dataset.partnerPlayers = JSON.stringify(partnerPlayers);
-            }
-
-            // Global functions for trade modal
-            window.executeTrade = function(interest) {
-                const modal = document.querySelector('.modal-overlay.show');
-                const yourPlayers = JSON.parse(modal.dataset.yourPlayers || '[]');
-                const partnerPlayers = JSON.parse(modal.dataset.partnerPlayers || '[]');
-                
-                const success = Math.random() * 100 < interest;
-                if (success) {
-                    // Execute the trade
-                    executeTradeLogic(yourPlayers, partnerPlayers);
-                    showModal('Trade Successful!', 'The trade has been completed successfully.');
-                } else {
-                    showModal('Trade Rejected', 'The other team rejected your trade proposal.');
-                }
-                closeTradeModal();
-            };
-
-            window.executeGuaranteedTrade = function() {
-                const modal = document.querySelector('.modal-overlay.show');
-                const yourPlayers = JSON.parse(modal.dataset.yourPlayers || '[]');
-                const partnerPlayers = JSON.parse(modal.dataset.partnerPlayers || '[]');
-                
-                // Execute the trade immediately
-                executeTradeLogic(yourPlayers, partnerPlayers);
-                closeTradeModal();
-            };
-
-            window.closeTradeModal = function() {
-                const modal = document.querySelector('.modal-overlay.show');
-                if (modal) {
-                    modal.remove();
-                }
-            };
-
-            function executeTradeLogic(yourPlayers, partnerPlayers) {
-                // Remove your players from your team
-                yourPlayers.forEach(player => {
-                    yourTeam = yourTeam.filter(p => p.name !== player.name);
-                });
-
-                // Add partner players to your team
-                partnerPlayers.forEach(player => {
-                    yourTeam.push(player);
-                });
-
-                // Update the UI
-                managementCapSpace.textContent = currentCapSpace.toFixed(1);
-                rosterSpots.textContent = yourTeam.length;
-                
-                const teamRatingData = getTeamRatingWithChemistry(yourTeam);
-                teamRating.textContent = Math.round(teamRatingData.totalRating);
-                
-                renderCurrentRoster();
-                renderTradeYourTeam();
-            }
-
-            function startSeason() {
-                // Show the game container and results section
-                gameContainer.classList.remove('hidden');
-                const resultsSection = document.getElementById('results-section');
-                if (resultsSection) resultsSection.classList.remove('hidden');
-
-                // Update the game container with current roster
+            continueDynastyBtn.addEventListener('click', () => {
+                // Continue with the same team for next season
+                currentSeason++;
+                yourTeam = [...originalTeam]; // Restore the original team
+                currentCapSpace = STARTING_CAP_SPACE;
+                seasonNumberEl.textContent = currentSeason;
+                resultsDisplay.textContent = `Season ${currentSeason} - Your team is ready for another run!`;
+                simPlayoffsBtn.style.display = 'none';
+                simPlayoffsBtn.textContent = 'Simulate Playoffs';
+                simSeasonBtn.style.display = 'inline-block';
+                hideSeasonEndScreen();
+                currentPlayoffRound = 0;
+                currentSeries = { userWins: 0, oppWins: 0, opponentRating: 0, opponentTeam: null };
                 renderPlayers();
-                
-                const teamRatingData = getTeamRatingWithChemistry(yourTeam);
-                const botTotalRatings = botTeams.map(team => {
-                    const botTeamData = getTeamRatingWithChemistry(team);
-                    return botTeamData.totalRating;
-                });
-                const avgBotRating = botTotalRatings.reduce((sum, rating) => sum + rating, 0) / botTeams.length;
-                const ratingDiff = teamRatingData.totalRating - avgBotRating;
-                const winProb = 0.5 + 0.01 * ratingDiff;
-                const clampedWinProb = Math.max(0, Math.min(1, winProb));
-                const expectedWins = 82 * clampedWinProb;
-                const wins = Math.round(expectedWins + (Math.random() * 10 - 5));
-                const finalWins = Math.max(0, Math.min(82, wins));
-                const losses = 82 - finalWins;
-
-                let chemistryInfo = '';
-                if (teamRatingData.chemistryBonus > 0) {
-                    chemistryInfo = `
-                        <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <p class="font-semibold text-green-800 mb-2">🏀 Team Chemistry Bonus: +${teamRatingData.chemistryBonus} Rating</p>
-                            <p class="text-sm text-green-700 mb-2">Chemistry Pairs:</p>
-                            <ul class="text-sm text-green-700 list-disc list-inside">
-                                ${teamRatingData.chemistryPairs.map(pair => `<li>${pair}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                resultsDisplay.innerHTML = `
-                    <p class="text-xl font-bold text-green-600">Regular Season Finished!</p>
-                    <p>Your team's record: <span class="text-green-600">${finalWins}</span> - <span class="text-red-600">${losses}</span></p>
-                    <p class="text-sm text-gray-600 mt-2">Base Team Rating: ${teamRatingData.baseRating} | Total Rating with Chemistry: ${teamRatingData.totalRating}</p>
-                    ${chemistryInfo}
-                `;
-                if (finalWins >= PLAYOFF_WIN_THRESHOLD) {
-                    resultsDisplay.innerHTML += '<p class="text-black mt-2 font-semibold">Congratulations, you made the playoffs!</p>';
-                    simPlayoffsBtn.style.display = 'inline-block';
-                    currentPlayoffRound = 1;
-                    simPlayoffsBtn.textContent = 'Simulate First Round';
-                    resetBtn.style.display = 'none';
-                } else {
-                    resultsDisplay.innerHTML += '<p class="text-black mt-2 font-semibold">You missed the playoffs. Better luck next year!</p>';
-                    resetBtn.style.display = 'inline-block';
-                }
-                finishBtn.style.display = 'none';
-                finishBtn.dataset.regularSeasonWins = finalWins;
-            }
+            });
 
             function showModal(title, message) {
                 modalTitle.textContent = title;
@@ -2209,6 +1761,16 @@
 
             function hideModal() {
                 customModal.classList.remove('show');
+            }
+
+            function showSeasonEndScreen() {
+                seasonEndScreen.classList.remove('hidden');
+                seasonEndScreen.classList.add('block');
+            }
+
+            function hideSeasonEndScreen() {
+                seasonEndScreen.classList.add('hidden');
+                seasonEndScreen.classList.remove('block');
             }
 
             function shuffleArray(array) {
@@ -2255,13 +1817,11 @@
                 renderPlayers();
             }
 
-            document.addEventListener('DOMContentLoaded', function() {
-                startBtn.addEventListener('click', () => {
-                    startScreen.style.display = 'none';
-                    teamSelectionScreen.classList.remove('hidden');
-                    teamSelectionScreen.classList.add('flex');
-                    renderTeams();
-                });
+            startBtn.addEventListener('click', () => {
+                startScreen.style.display = 'none';
+                teamSelectionScreen.classList.remove('hidden');
+                teamSelectionScreen.classList.add('flex');
+                renderTeams();
             });
 
             // Player name to image file mapping - only includes players with actual image files
@@ -2839,7 +2399,7 @@
                         try {
                             const card = createPlayerCard(p, true);
                             const removeButton = card.querySelector('.draft-btn');
-                            if (yourTeam.length === TEAM_SIZE && finishBtn.style.display !== 'none') removeButton.disabled = true;
+                            if (yourTeam.length === TEAM_SIZE && simSeasonBtn.style.display !== 'none') removeButton.disabled = true;
                             yourTeamEl.appendChild(card);
                         } catch (error) {
                             console.error('Error rendering team player card for:', p.name, error);
@@ -2849,8 +2409,8 @@
                     teamCountEl.textContent = `${yourTeam.length}`;
                     playerCountEl.textContent = `${availablePlayers.length}`;
                     positionLabelEl.textContent = currentLabel;
-                    finishBtn.disabled = yourTeam.length !== TEAM_SIZE;
-                    draftHeaderEl.textContent = yourTeam.length < TEAM_SIZE ? `Draft ${currentPositionInfo.label.slice(0, -1)}` : 'Your Team is Ready';
+                    simSeasonBtn.disabled = yourTeam.length !== TEAM_SIZE;
+                    draftHeaderEl.textContent = yourTeam.length < TEAM_SIZE ? `Season ${currentSeason} - Draft ${currentPositionInfo.label.slice(0, -1)}` : `Season ${currentSeason} - Your Team is Ready`;
 
                     if (yourTeam.length === TEAM_SIZE) botDraftedSectionEl.classList.add('hidden');
                     else {
@@ -2893,8 +2453,57 @@
                 resultsDisplay.textContent = `Removed ${player.name} from your team. Remaining Cap: $${currentCapSpace.toFixed(1)}M.`;
             }
 
-            finishBtn.addEventListener('click', () => {
-                startSeason();
+            simSeasonBtn.addEventListener('click', () => {
+                // Store original team if this is the first season
+                if (currentSeason === 1) {
+                    originalTeam = [...yourTeam];
+                }
+                
+                const teamRatingData = getTeamRatingWithChemistry(yourTeam);
+                const botTotalRatings = botTeams.map(team => {
+                    const botTeamData = getTeamRatingWithChemistry(team);
+                    return botTeamData.totalRating;
+                });
+                const avgBotRating = botTotalRatings.reduce((sum, rating) => sum + rating, 0) / botTeams.length;
+                const ratingDiff = teamRatingData.totalRating - avgBotRating;
+                const winProb = 0.5 + 0.01 * ratingDiff;
+                const clampedWinProb = Math.max(0, Math.min(1, winProb));
+                const expectedWins = 82 * clampedWinProb;
+                const wins = Math.round(expectedWins + (Math.random() * 10 - 5));
+                const finalWins = Math.max(0, Math.min(82, wins));
+                const losses = 82 - finalWins;
+
+                let chemistryInfo = '';
+                if (teamRatingData.chemistryBonus > 0) {
+                    chemistryInfo = `
+                        <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="font-semibold text-green-800 mb-2">🏀 Team Chemistry Bonus: +${teamRatingData.chemistryBonus} Rating</p>
+                            <p class="text-sm text-green-700 mb-2">Chemistry Pairs:</p>
+                            <ul class="text-sm text-green-700 list-disc list-inside">
+                                ${teamRatingData.chemistryPairs.map(pair => `<li>${pair}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                resultsDisplay.innerHTML = `
+                    <p class="text-xl font-bold text-green-600">Regular Season Finished!</p>
+                    <p>Your team's record: <span class="text-green-600">${finalWins}</span> - <span class="text-red-600">${losses}</span></p>
+                    <p class="text-sm text-gray-600 mt-2">Base Team Rating: ${teamRatingData.baseRating} | Total Rating with Chemistry: ${teamRatingData.totalRating}</p>
+                    ${chemistryInfo}
+                `;
+                if (finalWins >= PLAYOFF_WIN_THRESHOLD) {
+                    resultsDisplay.innerHTML += '<p class="text-black mt-2 font-semibold">Congratulations, you made the playoffs!</p>';
+                    simPlayoffsBtn.style.display = 'inline-block';
+                    currentPlayoffRound = 1;
+                    simPlayoffsBtn.textContent = 'Simulate First Round';
+                    resetBtn.style.display = 'none'; // Hide "Draft Again" when making playoffs
+                } else {
+                    resultsDisplay.innerHTML += '<p class="text-black mt-2 font-semibold">You missed the playoffs. Better luck next year!</p>';
+                    showSeasonEndScreen();
+                }
+                simSeasonBtn.style.display = 'none';
+                simSeasonBtn.dataset.regularSeasonWins = finalWins;
             });
 
             function getOpponentRating(round, regularSeasonWins) {
@@ -2966,7 +2575,7 @@
             simPlayoffsBtn.addEventListener('click', () => {
                 const teamRatingData = getTeamRatingWithChemistry(yourTeam);
                 const avgRating = teamRatingData.totalRating / TEAM_SIZE;
-                const regularSeasonWins = parseInt(finishBtn.dataset.regularSeasonWins || 0);
+                const regularSeasonWins = parseInt(simSeasonBtn.dataset.regularSeasonWins || 0);
 
                 const roundNames = ["First Round", "Conference Semifinals", "Conference Finals", "NBA Finals"];
 
@@ -2988,7 +2597,7 @@
                             <p class="mt-2 text-gray-700">Your team was eliminated in the ${roundNames[currentPlayoffRound - 1]}. Better luck next season!</p>
                         `;
                         simPlayoffsBtn.style.display = 'none';
-                        resetBtn.style.display = 'inline-block'; // Show "Draft Again" when eliminated
+                        showSeasonEndScreen();
                         currentPlayoffRound = 0;
                     }
                 } else if (currentPlayoffRound === 3 || currentPlayoffRound === 4) { // Conference Finals & Finals
@@ -3037,7 +2646,7 @@
                             `;
                             triggerConfetti();
                             simPlayoffsBtn.style.display = 'none';
-                            resetBtn.style.display = 'inline-block'; // Show "Draft Again" after winning championship
+                            showSeasonEndScreen();
                             currentPlayoffRound = 0;
                         } else { // Won Conference Finals
                             resultsDisplay.innerHTML += `<p class="mt-4 text-green-600 font-bold">You won the Conference Finals and advanced to the NBA Finals!</p>`;
@@ -3051,6 +2660,7 @@
                             <p class="mt-2 text-gray-700">Your team was eliminated in the ${roundName}. Better luck next season!</p>
                         `;
                         simPlayoffsBtn.style.display = 'none';
+                        showSeasonEndScreen();
                         currentPlayoffRound = 0;
                         currentSeries = { userWins: 0, oppWins: 0, opponentRating: 0, opponentTeam: null };
                     } else {
@@ -3060,23 +2670,7 @@
                 }
             });
 
-            resetBtn.addEventListener('click', () => {
-                yourTeam = [];
-                botTeams = [];
-                draftedPlayers = [];
-                currentCapSpace = STARTING_CAP_SPACE;
-                resultsDisplay.textContent = 'Draft your 5-player team to begin!';
-                simPlayoffsBtn.style.display = 'none';
-                simPlayoffsBtn.textContent = 'Simulate Playoffs';
-                simSeasonBtn.style.display = 'inline-block';
-                resetBtn.style.display = 'none';
-                teamSelectionScreen.classList.remove('hidden');
-                teamSelectionScreen.classList.add('flex');
-                gameContainer.classList.add('hidden');
-                currentPlayoffRound = 0;
-                currentSeries = { userWins: 0, oppWins: 0, opponentRating: 0, opponentTeam: null };
-                renderTeams();
-            });
+
 
             function triggerConfetti() {
                 const colors = ['#1d4ed8', '#3b82f6', '#60a5fa', '#dc2626', '#ef4444'];
