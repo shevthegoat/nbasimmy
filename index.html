@@ -1757,7 +1757,9 @@
                     agingResults.forEach(result => {
                         resultsText += `<li>${result}</li>`;
                     });
-                    resultsText += `</ul></div>`;
+                    resultsText += `</ul>`;
+                    resultsText += `<p class="text-xs text-gray-600 mt-2">🟢 = Improved | 🟡 = Maintained | 🔴 = Declined</p>`;
+                    resultsText += `</div>`;
                 }
                 
                 resultsDisplay.innerHTML = resultsText;
@@ -1816,9 +1818,8 @@
                     player.rating = Math.max(50, Math.min(99, player.rating + ratingChange));
                     player.age += 1;
                     
-                    if (ratingChange !== 0) {
-                        agingResults.push(agingMessage);
-                    }
+                    // Always add the message regardless of rating change
+                    agingResults.push(agingMessage);
                 });
                 
                 return agingResults;
