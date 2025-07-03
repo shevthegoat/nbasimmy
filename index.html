@@ -1450,7 +1450,7 @@
                 { name: "Aaron Gordon", rating: 78, position: "PF", age: 29 },
                 { name: "Michael Porter Jr.", rating: 78, position: "SF", age: 26 },
                 { name: "Derrick White", rating: 77, position: "SG", age: 30 },
-                { name: "Brook Lopez", rating: 77, position: "C", age: 36 },
+                { name: "Brook Lopez", rating: 77, position: "C", age: 37 },
                 { name: "Zaccharie Risacher", rating: 77, position: "SF", age: 20 },
                 { name: "Jarrett Allen", rating: 76, position: "C", age: 26 },
                 { name: "Myles Turner", rating: 76, position: "C", age: 28 },
@@ -1799,19 +1799,23 @@
                     const originalRating = player.rating;
                     let ratingChange = 0;
                     let agingMessage = '';
+                    let category = '';
                     
                     if (player.age < 25) {
                         // Players under 25 improve by 2
                         ratingChange = 2;
                         agingMessage = `🟢 ${player.name} improved rating due to age (${player.age} → ${player.age + 1})`;
+                        category = 'improved';
                     } else if (player.age >= 26 && player.age <= 34) {
                         // Players 26-34 stay the same
                         ratingChange = 0;
                         agingMessage = `🟡 ${player.name} maintained rating (${player.age} → ${player.age + 1})`;
+                        category = 'maintained';
                     } else if (player.age >= 35) {
                         // Players 35+ decline by 1
                         ratingChange = -1;
                         agingMessage = `🔴 ${player.name} declined rating due to age (${player.age} → ${player.age + 1})`;
+                        category = 'declined';
                     }
                     
                     // Apply rating change
@@ -1819,10 +1823,16 @@
                     player.age += 1;
                     
                     // Always add the message regardless of rating change
-                    agingResults.push(agingMessage);
+                    agingResults.push({ message: agingMessage, category: category });
                 });
                 
-                return agingResults;
+                // Sort by category: improved (green) first, maintained (yellow) second, declined (red) last
+                agingResults.sort((a, b) => {
+                    const categoryOrder = { 'improved': 1, 'maintained': 2, 'declined': 3 };
+                    return categoryOrder[a.category] - categoryOrder[b.category];
+                });
+                
+                return agingResults.map(result => result.message);
             }
 
             function shuffleArray(array) {
