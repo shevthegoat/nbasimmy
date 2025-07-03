@@ -1740,7 +1740,9 @@
             continueDynastyBtn.addEventListener('click', () => {
                 // Continue with the same team for next season
                 currentSeason++;
+                console.log('Original team before restore:', originalTeam);
                 yourTeam = [...originalTeam]; // Restore the original team
+                console.log('Your team after restore:', yourTeam);
                 
                 // Apply aging effects
                 const agingResults = applyAgingEffects(yourTeam);
@@ -1794,6 +1796,7 @@
 
             function applyAgingEffects(team) {
                 const agingResults = [];
+                console.log('Applying aging effects to team:', team);
                 
                 team.forEach(player => {
                     const originalRating = player.rating;
@@ -1828,7 +1831,7 @@
                 
                 // Sort by category: improved (green) first, maintained (yellow) second, declined (red) last
                 agingResults.sort((a, b) => {
-                    const categoryOrder = { 'improved': 1, 'maintained': 2, 'declined': 3 };
+                    const categoryOrder = { 'improved': 0, 'maintained': 1, 'declined': 2 };
                     return categoryOrder[a.category] - categoryOrder[b.category];
                 });
                 
