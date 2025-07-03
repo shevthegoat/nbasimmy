@@ -1641,6 +1641,9 @@
                 salary: customSalaryMap.get(player.name) || Math.floor(Math.random() * (7 - 2 + 1)) + 2
             }));
 
+            // Store a deep copy of the original players array for resetting
+            const originalPlayers = JSON.parse(JSON.stringify(players));
+
             const nbaTeams = [
                 { name: "Atlanta Hawks", initials: "ATL", logoUrl: "https://upload.wikimedia.org/wikipedia/en/2/24/Atlanta_Hawks_logo.svg" },
                 { name: "Boston Celtics", initials: "BOS", logoUrl: "https://upload.wikimedia.org/wikipedia/en/8/8f/Boston_Celtics.svg" },
@@ -1734,6 +1737,8 @@
                 gameContainer.classList.add('hidden');
                 currentPlayoffRound = 0;
                 currentSeries = { userWins: 0, oppWins: 0, opponentRating: 0, opponentTeam: null };
+                // Reset players array to original state (reset ages/ratings)
+                players = JSON.parse(JSON.stringify(originalPlayers));
                 renderTeams();
             });
 
