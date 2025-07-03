@@ -2460,6 +2460,12 @@
                         }
                     });
 
+                    // Store original team when draft is completed (first time team reaches 5 players)
+                    if (yourTeam.length === TEAM_SIZE && currentSeason === 1 && originalTeam.length === 0) {
+                        originalTeam = [...yourTeam];
+                        console.log('Original team stored after draft completion:', originalTeam);
+                    }
+                    
                     yourTeam.sort((a, b) => b.rating - a.rating).forEach(p => {
                         try {
                             const card = createPlayerCard(p, true);
@@ -2519,10 +2525,6 @@
             }
 
             simSeasonBtn.addEventListener('click', () => {
-                // Store original team if this is the first season
-                if (currentSeason === 1) {
-                    originalTeam = [...yourTeam];
-                }
                 
                 const teamRatingData = getTeamRatingWithChemistry(yourTeam);
                 const botTotalRatings = botTeams.map(team => {
