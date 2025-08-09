@@ -1488,7 +1488,7 @@
                 { name: "Kevin Durant", salary: 51.179021 },
                 { name: "Bradley Beal", salary: 50.203930 },
                 { name: "Jaylen Brown", salary: 49.205800 },
-                { name: "Devin Booker", salary: 49.205800 },
+                { name: "Devin Booker", salary: 72.50 },
                 { name: "Karl-Anthony Towns", salary: 49.205800 },
                 { name: "Paul George", salary: 49.205800 },
                 { name: "Kawhi Leonard", salary: 49.205800 },
@@ -1515,7 +1515,7 @@
                 { name: "OG Anunoby", salary: 36.637932 },
                 { name: "Jamal Murray", salary: 36.016200 },
                 { name: "Brandon Ingram", salary: 36.016200 },
-                { name: "Shai Gilgeous-Alexander", salary: 35.859950 },
+                { name: "Shai Gilgeous-Alexander", salary: 71.25 },
                 { name: "Michael Porter Jr.", salary: 35.859950 },
                 { name: "Donovan Mitchell", salary: 35.410310 },
                 { name: "Tyrese Maxey", salary: 35.147000 },
@@ -2289,9 +2289,9 @@
                     fallbackCard.innerHTML = `
                         <div class="flex-1 flex items-center">
                             <div class="mr-6">
-                                <p class="font-semibold text-lg text-gray-900">${player.name}</p>
+                            <p class="font-semibold text-lg text-gray-900">${player.name}</p>
                                 <p class="text-sm text-gray-600">POS: ${player.position} | AGE: ${player.age || 'N/A'}</p>
-                                <p class="text-lg font-bold nba-blue">SAL: $${(player.salary || 0).toFixed(2)}M</p>
+                            <p class="text-lg font-bold nba-blue">SAL: $${(player.salary || 0).toFixed(2)}M</p>
                             </div>
                             <div class="flex items-center space-x-4">
                                 <button onclick="showPlayerInfo('${player.name}')" class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded transition duration-300 shadow-sm">
@@ -2332,7 +2332,7 @@
                                 <button onclick="showPlayerInfo('${player.name}')" class="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded transition duration-300 shadow-sm">
                                     Info
                                 </button>
-                            </div>
+                        </div>
                         </div>
                         <div class="text-right ml-2">
                             <p class="text-xs text-gray-500">Drafted by AI</p>
@@ -2470,7 +2470,7 @@
                         originalTeam = [...yourTeam];
                         console.log('Original team stored after draft completion:', originalTeam);
                     }
-                    
+
                     yourTeam.sort((a, b) => b.rating - a.rating).forEach(p => {
                         try {
                             const card = createPlayerCard(p, true);
