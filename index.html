@@ -217,25 +217,33 @@
 
     <div id="start-screen" class="flex flex-col justify-center items-center h-screen bg-background">
         <!-- Logo -->
-        <div class="mb-8 flex flex-col items-center">
-            <div class="relative w-32 h-32 mb-4">
+        <div class="mb-8 flex items-center space-x-6">
+            <!-- Dunking Player Silhouette -->
+            <div class="relative w-40 h-40">
+                <!-- Basketball Hoop -->
+                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-12 border-4 border-red-600 rounded-t-full bg-red-500"></div>
+                <div class="absolute top-8 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-red-600"></div>
+                <div class="absolute top-8 left-1/2 transform -translate-x-1/2 w-1 h-8 bg-red-600"></div>
+                <div class="absolute top-16 left-1/2 transform -translate-x-1/2 w-1 h-4 bg-red-600"></div>
+                
                 <!-- Basketball -->
-                <div class="absolute inset-0 bg-orange-500 rounded-full border-4 border-orange-600 shadow-lg"></div>
-                <!-- Basketball lines -->
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-full h-1 bg-orange-600 rounded-full"></div>
-                </div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-1 h-full bg-orange-600 rounded-full"></div>
-                </div>
-                <!-- NBA text -->
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <span class="text-white font-bold text-lg">NBA</span>
-                </div>
+                <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-orange-500 rounded-full border-2 border-orange-600"></div>
+                
+                <!-- Player Silhouette -->
+                <div class="absolute top-20 left-1/2 transform -translate-x-1/2 w-8 h-16 bg-gray-800 rounded-full"></div>
+                <!-- Player Head -->
+                <div class="absolute top-20 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-gray-800 rounded-full"></div>
+                <!-- Player Arms -->
+                <div class="absolute top-24 left-1/2 transform -translate-x-1/2 w-12 h-2 bg-gray-800 rounded-full transform rotate-45"></div>
+                <!-- Player Legs -->
+                <div class="absolute top-32 left-1/2 transform -translate-x-1/2 w-2 h-8 bg-gray-800 rounded-full transform rotate-45"></div>
+                <div class="absolute top-32 left-1/2 transform -translate-x-1/2 w-2 h-8 bg-gray-800 rounded-full transform -rotate-45"></div>
             </div>
-            <!-- SIMMY text -->
+            
+            <!-- NBA SIMMY Text -->
             <div class="text-center">
-                <span class="text-3xl font-bold text-gray-700">SIMMY</span>
+                <div class="text-4xl font-bold text-blue-600 mb-2">NBA</div>
+                <div class="text-5xl font-bold text-gray-700">SIMMY</div>
             </div>
         </div>
         <h1 class="text-4xl font-bold mb-8 nba-gradient-text">NBA Draft & Season Simulator</h1>
